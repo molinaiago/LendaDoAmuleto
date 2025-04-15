@@ -8,7 +8,9 @@ const config = {
     parent: 'game-container',
     physics: {
         default: 'arcade',
-        arcade: { debug: false }
+        arcade: { arcade: {
+            gravity: { y: 0 },
+          }, }
     },
     scene: [Start, Mapa]
 };

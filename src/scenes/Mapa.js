@@ -1,13 +1,19 @@
+import { configControls, createControls } from "./Controls";
+import { createPlayer, loadSprites } from "./Player";
+
 export class Mapa extends Phaser.Scene {
+    player;
+    controls;
+    water;
     constructor() {
         super('Mapa');
+      
     }
+
     preload() {
         this.load.tilemapTiledJSON('mapa', 'assets/mapa_vila_floresta.json');
-    
         this.load.image('tileset_grass', 'assets/map/blocos/tileset_grass.png');
         this.load.image('tileset_water', 'assets/map/blocos/tileset_water.png');
-    
         this.load.image('tiled_route', 'assets/map/constructions/tiled_route.png');
         this.load.image('tiled_extras', 'assets/map/constructions/tiled_extras.png');
         this.load.image('tileset_houses', 'assets/map/constructions/tileset_houses.png');
@@ -17,11 +23,8 @@ export class Mapa extends Phaser.Scene {
 
         this.load.image('boss', 'assets/map/characters/boss.png');
         this.load.image('enemies', 'assets/map/characters/enemies.png');
- 
-        this.load.spritesheet('main_character', 'assets/map/characters/main_character.png', {
-            frameWidth: 32,
-            frameHeight: 32
-        });
+
+        loadSprites(this);
     }
 
     create() {
@@ -38,7 +41,6 @@ export class Mapa extends Phaser.Scene {
             map.addTilesetImage('tileset_three', 'tileset_three'),
             map.addTilesetImage('boss', 'boss'),
             map.addTilesetImage('enemies', 'enemies'),
-            map.addTilesetImage('main_character', 'main_character')
         ];
 
         const layer1 = map.createLayer('Camada de Blocos 1', tilesets, 0, 0);
@@ -49,29 +51,24 @@ export class Mapa extends Phaser.Scene {
 
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-        // POSIÇÃO INICIAL: canto inferior esquerdo do mapa
-        this.player = this.physics.add.sprite(64, map.heightInPixels - 64, 'main_character', 0);
+        this.player = createPlayer(this);
+        this.player.setPosition(64, map.heightInPixels - 64);
         this.player.setCollideWorldBounds(true);
 
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
-        this.anims.create({ key: 'left', frames: this.anims.generateFrameNumbers('main_character', { start: 9, end: 11 }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'right', frames: this.anims.generateFrameNumbers('main_character', { start: 6, end: 8 }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'up', frames: this.anims.generateFrameNumbers('main_character', { start: 3, end: 5 }), frameRate: 10, repeat: -1 });
-        this.anims.create({ key: 'down', frames: this.anims.generateFrameNumbers('main_character', { start: 0, end: 2 }), frameRate: 10, repeat: -1 });
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
         this.physics.add.collider(this.player, layer1);
         this.physics.add.collider(this.player, layer2);
 
-        // Grupo de boss (não instanciado por enquanto)
         this.grupoBoss = this.physics.add.group();
 
-        // Inimigos (ainda ignorando boss)
-        const objetosInimigos = map.getObjectLayer('inimigos')?.objects || [];
+        this.player.anims.play("player_idle", true);
 
+
+        const objetosInimigos = map.getObjectLayer('inimigos')?.objects || [];
         objetosInimigos.forEach(obj => {
             if (obj.type === 'inimigo') {
                 const inimigo = this.grupoBoss.create(obj.x, obj.y - obj.height, 'enemies');
@@ -84,29 +81,11 @@ export class Mapa extends Phaser.Scene {
         this.physics.add.collider(this.player, this.grupoBoss, (player, inimigo) => {
             console.log('Encostou em um inimigo comum');
         });
+
+        this.controls = createControls(this)
     }
 
     update() {
-        const speed = 150;
-        const player = this.player;
-        const cursors = this.cursors;
-
-        player.setVelocity(0);
-
-        if (cursors.left.isDown) {
-            player.setVelocityX(-speed);
-            player.anims.play('left', true);
-        } else if (cursors.right.isDown) {
-            player.setVelocityX(speed);
-            player.anims.play('right', true);
-        } else if (cursors.up.isDown) {
-            player.setVelocityY(-speed);
-            player.anims.play('up', true);
-        } else if (cursors.down.isDown) {
-            player.setVelocityY(speed);
-            player.anims.play('down', true);
-        } else {
-            player.anims.stop();
-        }
+        configControls(this.player, this.controls)
     }
 }
