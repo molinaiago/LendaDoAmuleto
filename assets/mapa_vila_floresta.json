@@ -1232,15 +1232,15 @@
          "name":"inimigos",
          "objects":[
                 {
-                 "height":9423.51515151515,
+                 "height":9423.52,
                  "id":5,
                  "name":"",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":19032.6060606061,
-                 "x":39.3939393939394,
-                 "y":48.4848484848485
+                 "width":19032.6,
+                 "x":39.3939,
+                 "y":48.4848
                 }],
          "opacity":1,
          "type":"objectgroup",

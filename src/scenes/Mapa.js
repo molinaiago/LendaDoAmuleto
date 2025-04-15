@@ -2,22 +2,23 @@ export class Mapa extends Phaser.Scene {
     constructor() {
         super('Mapa');
     }
-
     preload() {
-        this.load.tilemapTiledJSON('mapa', 'assets/map/mapa_vila_floresta.json');
+        this.load.tilemapTiledJSON('mapa', 'assets/mapa_vila_floresta.json');
+    
+        this.load.image('tileset_grass', 'assets/map/blocos/tileset_grass.png');
+        this.load.image('tileset_water', 'assets/map/blocos/tileset_water.png');
+    
+        this.load.image('tiled_route', 'assets/map/constructions/tiled_route.png');
+        this.load.image('tiled_extras', 'assets/map/constructions/tiled_extras.png');
+        this.load.image('tileset_houses', 'assets/map/constructions/tileset_houses.png');
+        this.load.image('tileset_houses2', 'assets/map/constructions/tileset_houses2.png');
+        this.load.image('tileset_abandoned_houses', 'assets/map/constructions/tileset_abandoned_houses.png');
+        this.load.image('tileset_three', 'assets/map/constructions/tileset_three.png');
 
-        this.load.image('tileset_grass', 'assets/blocos/tileset_grass.png');
-        this.load.image('tileset_water', 'assets/blocos/tileset_water.png');
-        this.load.image('tiled_route', 'assets/constructions/tiled_route.png');
-        this.load.image('tiled_extras', 'assets/constructions/tiled_extras.png');
-        this.load.image('tileset_houses', 'assets/constructions/tileset_houses.png');
-        this.load.image('tileset_houses2', 'assets/constructions/tileset_houses2.png');
-        this.load.image('tileset_abandoned_houses', 'assets/constructions/tileset_abandoned_houses.png');
-        this.load.image('tileset_three', 'assets/constructions/tileset_three.png');
-        this.load.image('boss', 'assets/characters/boss.png');
-        this.load.image('enemies', 'assets/characters/enemies.png');
-
-        this.load.spritesheet('main_character', 'assets/characters/main_character.png', {
+        this.load.image('boss', 'assets/map/characters/boss.png');
+        this.load.image('enemies', 'assets/map/characters/enemies.png');
+ 
+        this.load.spritesheet('main_character', 'assets/map/characters/main_character.png', {
             frameWidth: 32,
             frameHeight: 32
         });
