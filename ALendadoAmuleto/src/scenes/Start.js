@@ -1,45 +1,61 @@
 export class Start extends Phaser.Scene {
-
     constructor() {
         super('Start');
     }
 
     preload() {
-        this.load.image('background', 'assets/space.png');
-        this.load.image('logo', 'assets/phaser.png');
 
-        //  The ship sprite is CC0 from https://ansimuz.itch.io - check out his other work!
-        this.load.spritesheet('ship', 'assets/spaceship.png', { frameWidth: 176, frameHeight: 96 });
+        this.load.image('menu_bg', 'assets/menu/menu_bg.png');
+        this.load.image('logo3', 'assets/menu/logo3.png');
+        this.load.image('start', 'assets/menu/start.png');
+        this.load.image('options', 'assets/menu/options.png');
+        this.load.image('diamond', 'assets/menu/diamond.png');
+        
     }
 
     create() {
-        this.background = this.add.tileSprite(640, 360, 1280, 720, 'background');
 
-        const logo = this.add.image(640, 200, 'logo');
+        this.add.image(640, 360, 'menu_bg').setDisplaySize(1280, 720);
 
-        const ship = this.add.sprite(640, 360, 'ship');
+        this.add.image(640, 80, 'logo3').setScale(0.8);
 
-        ship.anims.create({
-            key: 'fly',
-            frames: this.anims.generateFrameNumbers('ship', { start: 0, end: 2 }),
-            frameRate: 15,
-            repeat: -1
+        this.add.image(210, 400, 'diamond').setScale(0.5);
+
+        const botaoStart = this.add.image(200, 500, 'start')
+            .setScale(0.5)
+            .setInteractive();
+
+        botaoStart.on('pointerdown', () => {
+            this.scene.start('Mapa');
         });
 
-        ship.play('fly');
+        botaoStart.on('pointerover', () => {
+            botaoStart.setTint(0xdddddd);
+            document.body.style.cursor = 'pointer';
+        });
 
-        this.tweens.add({
-            targets: logo,
-            y: 400,
-            duration: 1500,
-            ease: 'Sine.inOut',
-            yoyo: true,
-            loop: -1
+        botaoStart.on('pointerout', () => {
+            botaoStart.clearTint();
+            document.body.style.cursor = 'default';
+        });
+
+        // Botão "Opções"
+        const botaoOptions = this.add.image(200, 600, 'options')
+            .setScale(0.5)
+            .setInteractive();
+
+        botaoOptions.on('pointerdown', () => {
+            console.log('Botão de opções clicado (em breve...)');
+        });
+
+        botaoOptions.on('pointerover', () => {
+            botaoOptions.setTint(0xdddddd);
+            document.body.style.cursor = 'pointer';
+        });
+
+        botaoOptions.on('pointerout', () => {
+            botaoOptions.clearTint();
+            document.body.style.cursor = 'default';
         });
     }
-
-    update() {
-        this.background.tilePositionX += 2;
-    }
-    
 }
