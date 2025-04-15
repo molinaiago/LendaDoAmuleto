@@ -47,6 +47,8 @@ export class Mapa extends Phaser.Scene {
         layer1.setCollisionByProperty({ collider: true });
         layer2.setCollisionByProperty({ collider: true });
 
+        this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
         // POSIÇÃO INICIAL: canto inferior esquerdo do mapa
         this.player = this.physics.add.sprite(64, map.heightInPixels - 64, 'main_character', 0);
         this.player.setCollideWorldBounds(true);
