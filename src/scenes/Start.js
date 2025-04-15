@@ -4,21 +4,16 @@ export class Start extends Phaser.Scene {
     }
 
     preload() {
-
         this.load.image('menu_bg', 'assets/menu/menu_bg.png');
         this.load.image('logo3', 'assets/menu/logo3.png');
         this.load.image('start', 'assets/menu/start.png');
         this.load.image('options', 'assets/menu/options.png');
         this.load.image('diamond', 'assets/menu/diamond.png');
-        
     }
 
     create() {
-
         this.add.image(640, 360, 'menu_bg').setDisplaySize(1280, 720);
-
         this.add.image(640, 80, 'logo3').setScale(0.8);
-
         this.add.image(210, 400, 'diamond').setScale(0.5);
 
         const botaoStart = this.add.image(200, 500, 'start')
@@ -39,7 +34,6 @@ export class Start extends Phaser.Scene {
             document.body.style.cursor = 'default';
         });
 
-        // Botão "Opções"
         const botaoOptions = this.add.image(200, 600, 'options')
             .setScale(0.5)
             .setInteractive();

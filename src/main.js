@@ -1,5 +1,5 @@
-import { Start } from './scenes/start.js';
-import { Mapa } from './scenes/mapa.js';
+import { Start } from './scenes/Start.js';
+import { Mapa } from './scenes/Mapa.js';
 
 const config = {
     type: Phaser.AUTO,

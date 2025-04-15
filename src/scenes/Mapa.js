@@ -4,7 +4,8 @@ export class Mapa extends Phaser.Scene {
     }
 
     preload() {
-        this.load.tilemapTiledJSON('mapa', 'assets/mapa_vila_floresta.json');
+        this.load.tilemapTiledJSON('mapa', 'assets/map/mapa_vila_floresta.json');
+
         this.load.image('tileset_grass', 'assets/blocos/tileset_grass.png');
         this.load.image('tileset_water', 'assets/blocos/tileset_water.png');
         this.load.image('tiled_route', 'assets/constructions/tiled_route.png');
@@ -41,14 +42,12 @@ export class Mapa extends Phaser.Scene {
 
         const layer1 = map.createLayer('Camada de Blocos 1', tilesets, 0, 0);
         const layer2 = map.createLayer('Camada de Blocos 2', tilesets, 0, 0);
-        const layerInimigos = map.createLayer('inimigos', tilesets, 0, 0);
-
 
         layer1.setCollisionByProperty({ collider: true });
         layer2.setCollisionByProperty({ collider: true });
-        layerInimigos.setCollisionByProperty({ collider: true });
 
-        this.player = this.physics.add.sprite(100, 100, 'main_character', 0);
+        // POSIÇÃO INICIAL: canto inferior esquerdo do mapa
+        this.player = this.physics.add.sprite(64, map.heightInPixels - 64, 'main_character', 0);
         this.player.setCollideWorldBounds(true);
 
         this.cameras.main.startFollow(this.player);
@@ -63,26 +62,24 @@ export class Mapa extends Phaser.Scene {
 
         this.physics.add.collider(this.player, layer1);
         this.physics.add.collider(this.player, layer2);
-        this.physics.add.collider(this.player, layerInimigos);
 
-
+        // Grupo de boss (não instanciado por enquanto)
         this.grupoBoss = this.physics.add.group();
 
+        // Inimigos (ainda ignorando boss)
         const objetosInimigos = map.getObjectLayer('inimigos')?.objects || [];
 
         objetosInimigos.forEach(obj => {
-            if (obj.type === 'boss') {
-                const boss = this.grupoBoss.create(obj.x, obj.y - obj.height, 'boss');
-                boss.setCollideWorldBounds(true);
-                boss.setImmovable(true);
-                boss.setScale(1.5);
-                boss.tipo = 'boss'; // pode usar isso depois para lógica personalizada
+            if (obj.type === 'inimigo') {
+                const inimigo = this.grupoBoss.create(obj.x, obj.y - obj.height, 'enemies');
+                inimigo.setImmovable(true);
+                inimigo.setCollideWorldBounds(true);
+                inimigo.tipo = 'comum';
             }
         });
 
-        // Colisão entre jogador e boss
-        this.physics.add.collider(this.player, this.grupoBoss, (player, boss) => {
-            console.log('Jogador encontrou o boss!');
+        this.physics.add.collider(this.player, this.grupoBoss, (player, inimigo) => {
+            console.log('Encostou em um inimigo comum');
         });
     }
 
