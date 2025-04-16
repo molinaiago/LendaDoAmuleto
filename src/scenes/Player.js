@@ -5,23 +5,24 @@ export function createPlayer(scene) {
 }
 
 export function loadSprites(scene) {
-    scene.load.spritesheet("player_walk", "assets/map/characters/walk.png", {
+    scene.load.spritesheet("player_walk", "assets/map/characters/main/walk.png", {
         frameWidth: 64,
         frameHeight: 64,
         spacing: 0,
     })
 
-    scene.load.spritesheet("player_idle", "assets/map/characters/idle.png", {
+    scene.load.spritesheet("player_idle", "assets/map/characters/main/idle.png", {
         frameWidth: 64,
         frameHeight: 64,
         spacing: 0,
     })
 
-    scene.load.spritesheet("player_walk_up", "assets/map/characters/walk.png", {
+    scene.load.spritesheet("player_walk_up", "assets/map/characters/main/walk.png", {
         frameWidth: 64,
         frameHeight: 64,
       });
-      scene.load.spritesheet("player_walk_down", "assets/map/characters/walk.png", {
+
+      scene.load.spritesheet("player_walk_down", "assets/map/characters/main/walk.png", {
         frameWidth: 64,
         frameHeight: 64,
       });
@@ -32,9 +33,9 @@ export function createAnimations(scene) {
         key: "player_idle",
         frames: scene.anims.generateFrameNames("player_idle", {
           start: 0,
-          end: 6,
+          end: 1,
         }),
-        frameRate: 5,
+        frameRate: 2,
         repeat: -1,
         yoyo: true,
       });
