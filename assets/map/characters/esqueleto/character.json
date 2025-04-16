@@ -1,0 +1,86 @@
+{
+  "bodyTypeName": "female",
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Skeleton_skeleton&head=Human_male_light&sex=female&hat=Barbarian_Viking_bronze&backpack=none_Backpack&gloves=none_Gloves&bauldron=none_Bauldron&ammo=none_Ammo&weapon=Dagger_dagger",
+  "spritesheets": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/spritesheets/",
+  "version": 1,
+  "datetime": "15/04/2025, 19:29:54",
+  "credits": [
+    {
+      "fileName": "body/bodies/skeleton/skeleton.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,Johannes Sjölund (wulax),Stephen Challener (Redshrike)",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases",
+      "notes": ""
+    },
+    {
+      "fileName": "head/heads/human/male/light.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,Benjamin K. Smith (BenCreating),Stephen Challener (Redshrike)",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-character-bases",
+      "notes": "original head by Redshrike, tweaks by BenCreating, modular version by bluecarrot16"
+    },
+    {
+      "fileName": "hat/helmet/barbarian_viking/adult/bronze.png",
+      "licenses": "CC-BY 3.0,CC-BY 4.0,OGA-BY 3.0,GPL 2.0,GPL 3.0",
+      "authors": "bluecarrot16",
+      "urls": "https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/dagger/dagger.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,Johannes Sjölund (wulax),Matthew Krohn (makrohn)",
+      "urls": "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-extended-weapon-animations",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/sword/dagger/behind/dagger.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,Johannes Sjölund (wulax),Matthew Krohn (makrohn)",
+      "urls": "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-extended-weapon-animations",
+      "notes": ""
+    }
+  ],
+  "layers": [
+    {
+      "fileName": "weapon/sword/dagger/behind/dagger.png",
+      "zPos": 9,
+      "parentName": "weapon",
+      "name": "Dagger",
+      "variant": "dagger",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "body/bodies/skeleton/skeleton.png",
+      "zPos": 10,
+      "parentName": "body",
+      "name": "Skeleton",
+      "variant": "skeleton",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "head/heads/human/male/light.png",
+      "zPos": 100,
+      "parentName": "head",
+      "name": "Human_male",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "hat/helmet/barbarian_viking/adult/bronze.png",
+      "zPos": 130,
+      "parentName": "hat",
+      "name": "Barbarian_Viking",
+      "variant": "bronze",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/sword/dagger/dagger.png",
+      "zPos": 140,
+      "parentName": "weapon",
+      "name": "Dagger",
+      "variant": "dagger",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    }
+  ]
+}

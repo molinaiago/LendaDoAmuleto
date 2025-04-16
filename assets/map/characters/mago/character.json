@@ -1,0 +1,176 @@
+{
+  "bodyTypeName": "male",
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Body_color_light&head=Human_male_small_light&jacket=Santa_coat_maroon&eye_color=Eye_Color_red&expression=Angry_light&nose=Big_nose_light&beard=Winter_Beard_platinum&hat=Wizard_Hat_Base_base_black&weapon=Simple_staff_simple&shoes_toe=Plated_Toe_iron",
+  "spritesheets": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/spritesheets/",
+  "version": 1,
+  "datetime": "14/04/2025, 21:57:48",
+  "credits": [
+    {
+      "fileName": "body/bodies/male/light.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "bluecarrot16,JaidynReiman,Benjamin K. Smith (BenCreating),Evert,Eliza Wyatt (ElizaWy),TheraHedwig,MuffinElZangano,Durrani,Johannes Sjölund (wulax),Stephen Challener (Redshrike)",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-male-jumping-animation-by-durrani,https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle,https://opengameart.org/content/lpc-revised-character-basics,https://opengameart.org/content/lpc-be-seated,https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads,https://opengameart.org/content/lpc-jump-expanded,https://opengameart.org/content/lpc-character-bases",
+      "notes": "see details at https://opengameart.org/content/lpc-character-bases; 'Thick' Male Revised Run/Climb by JaidynReiman (based on ElizaWy's LPC Revised)"
+    },
+    {
+      "fileName": "head/heads/human/male_small/light.png",
+      "licenses": "OGA-BY 3.0,CC-BY",
+      "authors": "ElizaWy,Stephen Challener (Redshrike)",
+      "urls": "",
+      "notes": "original head by Redshrike, reduced size head by ElizaWy"
+    },
+    {
+      "fileName": "head/faces/${head}/anger/light.png",
+      "licenses": "OGA-BY 3.0",
+      "authors": "JaidynReiman,ElizaWy,Stephen Challener (Redshrike)",
+      "urls": "https://github.com/ElizaWy/LPC/tree/main/Characters/Head,https://opengameart.org/content/ulpc-expanded-expressions",
+      "notes": "Original by Redshrike, Expressions by ElizaWy, mapped to all frames by JaidynReiman"
+    },
+    {
+      "fileName": "eyes/human/adult/${expression}/red.png",
+      "licenses": "OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0",
+      "authors": "JaidynReiman,ElizaWy,Stephen Challener (Redshrike)",
+      "urls": "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+      "notes": "original by Redshrike, Expressions by ElizaWy, eyes split from expressions and mapped to all frames by JaidynReiman"
+    },
+    {
+      "fileName": "head/nose/big/adult/light.png",
+      "licenses": "GPL 3.0,CC-BY-SA 3.0",
+      "authors": "Thane Brimhall (pennomi),laetissima,Matthew Krohn (makrohn)",
+      "urls": "https://opengameart.org/content/lpc-base-character-expressions",
+      "notes": ""
+    },
+    {
+      "fileName": "beards/beard/winter/male/platinum.png",
+      "licenses": "CC0",
+      "authors": "bluecarrot16",
+      "urls": "https://opengameart.org/content/lpc-santa",
+      "notes": ""
+    },
+    {
+      "fileName": "hat/magic/wizard/base/adult/base_black.png",
+      "licenses": "CC-BY-SA 3.0,GPL 2.0,GPL 3.0",
+      "authors": "Michael Whitlock (bigbeargames),Tuomo Untinen (reemax),JaidynReiman",
+      "urls": "https://opengameart.org/content/lpc-items-and-game-effects,https://opengameart.org/content/lpc-pointed-hats,https://opengameart.org/content/lpc-expanded-hats-facial-helmets",
+      "notes": "Original Wizard Hat and Recolors by bigbeargames and reemax; split into separate layers with new recolors by JaidynReiman"
+    },
+    {
+      "fileName": "torso/jacket/santa/male/maroon.png",
+      "licenses": "OGA-BY 3.0,GPL 3.0",
+      "authors": "bluecarrot16",
+      "urls": "https://opengameart.org/content/lpc-gentleman,https://opengameart.org/content/lpc-santa",
+      "notes": ""
+    },
+    {
+      "fileName": "feet/accessory/plate_toe/male/iron.png",
+      "licenses": "OGA-BY 3.0+,CC-BY 3.0+,GPL 3.0",
+      "authors": "JaidynReiman",
+      "urls": "https://opengameart.org/content/lpc-kimono-relm,https://opengameart.org/content/lpc-expanded-socks-shoes",
+      "notes": ""
+    },
+    {
+      "fileName": "weapon/magic/simple/foreground/simple.png",
+      "licenses": "CC0",
+      "authors": "bluecarrot16,Dr. Jamgo",
+      "urls": "https://opengameart.org/content/lpc-simple-staff",
+      "notes": "original by DrJamgo, hands switched and split into to layers by bluecarrot16"
+    },
+    {
+      "fileName": "weapon/magic/simple/background/simple.png",
+      "licenses": "CC0",
+      "authors": "bluecarrot16,Dr. Jamgo",
+      "urls": "https://opengameart.org/content/lpc-simple-staff",
+      "notes": "original by DrJamgo, hands switched and split into to layers by bluecarrot16"
+    }
+  ],
+  "layers": [
+    {
+      "fileName": "weapon/magic/simple/background/simple.png",
+      "zPos": 9,
+      "parentName": "weapon",
+      "name": "Simple_staff",
+      "variant": "simple",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "body/bodies/male/light.png",
+      "zPos": 10,
+      "parentName": "body",
+      "name": "Body_color",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "feet/accessory/plate_toe/male/iron.png",
+      "zPos": 27,
+      "parentName": "shoes_toe",
+      "name": "Plated_Toe",
+      "variant": "iron",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "torso/jacket/santa/male/maroon.png",
+      "zPos": 55,
+      "parentName": "jacket",
+      "name": "Santa_coat",
+      "variant": "maroon",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    },
+    {
+      "fileName": "head/heads/human/male_small/light.png",
+      "zPos": 100,
+      "parentName": "head",
+      "name": "Human_male_small",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "head/faces/male/anger/light.png",
+      "zPos": 101,
+      "parentName": "expression",
+      "name": "Angry",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "eyes/human/adult/anger/red.png",
+      "zPos": 105,
+      "parentName": "eye_color",
+      "name": "Eye_Color",
+      "variant": "red",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "head/nose/big/adult/light.png",
+      "zPos": 105,
+      "parentName": "nose",
+      "name": "Big_nose",
+      "variant": "light",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "beards/beard/winter/male/platinum.png",
+      "zPos": 110,
+      "parentName": "beard",
+      "name": "Winter_Beard",
+      "variant": "platinum",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "hat/magic/wizard/base/adult/base_black.png",
+      "zPos": 130,
+      "parentName": "hat",
+      "name": "Wizard_Hat_Base",
+      "variant": "base_black",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering,idle,jump,run,sit,emote,climb,combat,1h_slash,1h_backslash,1h_halfslash"
+    },
+    {
+      "fileName": "weapon/magic/simple/foreground/simple.png",
+      "zPos": 140,
+      "parentName": "weapon",
+      "name": "Simple_staff",
+      "variant": "simple",
+      "supportedAnimations": "spellcast,thrust,walk,slash,shoot,hurt,watering"
+    }
+  ]
+}
