@@ -1,6 +1,6 @@
 export function createPlayer(scene) {
-    const player = scene.physics.add.sprite(200, 200, 'player_idle')
-    createAnimations(scene)
+    const player = scene.physics.add.sprite(240, 240, "player_idle")
+    createAnimations(scene, player)
     return player
 }
 
@@ -22,13 +22,13 @@ export function loadSprites(scene) {
         frameHeight: 64,
       });
 
-      scene.load.spritesheet("player_walk_down", "assets/map/characters/main/walk.png", {
+    scene.load.spritesheet("player_walk_down", "assets/map/characters/main/walk.png", {
         frameWidth: 64,
         frameHeight: 64,
-      });
+    });
 }
 
-export function createAnimations(scene) {
+export function createAnimations(scene, player) {
     scene.anims.create({
         key: "player_idle",
         frames: scene.anims.generateFrameNames("player_idle", {
@@ -42,7 +42,7 @@ export function createAnimations(scene) {
 
       scene.anims.create({
         key: "player_walk",
-        frames: scene.anims.generateFrameNumbers("player_walk", {
+        frames: scene.anims.generateFrameNames("player_walk", {
             start: 27,
             end: 35, 
         }),
@@ -52,7 +52,7 @@ export function createAnimations(scene) {
 
     scene.anims.create({
         key: "walk_up",
-        frames: scene.anims.generateFrameNumbers("player_walk_up", {
+        frames: scene.anims.generateFrameNames("player_walk_up", {
           start: 18,
           end: 26
         }),
@@ -62,7 +62,7 @@ export function createAnimations(scene) {
     
       scene.anims.create({
         key: "walk_down",
-        frames: scene.anims.generateFrameNumbers("player_walk_down", {
+        frames: scene.anims.generateFrameNames("player_walk_down", {
           start: 0,
           end: 8
         }),
