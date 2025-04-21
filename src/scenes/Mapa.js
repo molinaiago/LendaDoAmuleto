@@ -5,6 +5,7 @@ import {
     createGoblinAnimations,
     createGoblin
 } from "./Goblin.js";
+import { createEsqueleto, loadEsqueletoSprites } from "./Esqueleto.js";
 
 export class Mapa extends Phaser.Scene {
     constructor() {
@@ -28,6 +29,7 @@ export class Mapa extends Phaser.Scene {
 
         loadSprites(this);
         loadGoblinSprites(this);
+        loadEsqueletoSprites(this);
     }
 
     create() {
@@ -67,6 +69,10 @@ export class Mapa extends Phaser.Scene {
         // goblin
         this.goblin = createGoblin(this);
         this.goblin.setPosition(this.player.x + 64, this.player.y);
+
+        // esqueleto
+        this.esqueleto = createEsqueleto(this);
+        this.esqueleto.setPosition(this.player.x + 100, this.player.y);
 
         this.physics.add.collider(this.player, this.goblin, () => {
             console.log("Colidiu com o goblin!");
