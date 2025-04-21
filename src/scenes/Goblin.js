@@ -1,4 +1,4 @@
-export function createGoblin(scene, globin) {
+export function createGoblin(scene) {
     const goblin = scene.physics.add.sprite(200, 200, "goblin_run")
     createGoblinAnimations(scene)
     goblin.anims.play("goblin_run", true);
