@@ -2,7 +2,6 @@ import { configControls, createControls } from "./Controls.js";
 import { createPlayer, loadSprites } from "./Player.js";
 import {
     loadGoblinSprites,
-    createGoblinAnimations,
     createGoblin
 } from "./Goblin.js";
 import { createEsqueleto, loadEsqueletoSprites } from "./Esqueleto.js";
@@ -24,7 +23,7 @@ export class Mapa extends Phaser.Scene {
         this.load.image("tiled_route", "assets/map/constructions/tiled_route.png");
         this.load.image("tiled_extras", "assets/map/constructions/tiled_extras_noBG.png");
         this.load.image("tileset_houses", "assets/map/constructions/tileset_houses_noBG.png");
-        this.load.image("tileset_houses2", "assets/map/constructions/tileset_houses2.png");
+        this.load.image("tileset_houses2", "assets/map/constructions/tileset_houses2_noBG.png");
         this.load.image("tileset_abandoned_houses", "assets/map/constructions/tileset_abandoned_houses.png");
         this.load.image("tileset_three", "assets/map/constructions/tileset_three_noBG.png");
 
