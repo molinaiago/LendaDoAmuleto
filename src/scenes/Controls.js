@@ -1,4 +1,4 @@
-const defaultVelocity = 250;
+const defaultVelocity = 2250;
 
 export function createControls(scene) {
     return scene.input.keyboard.createCursorKeys();

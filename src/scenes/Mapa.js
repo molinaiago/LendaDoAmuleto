@@ -25,7 +25,7 @@ export class Mapa extends Phaser.Scene {
         this.load.image("tileset_houses", "assets/map/constructions/tileset_houses_noBG.png");
         this.load.image("tileset_houses2", "assets/map/constructions/tileset_houses2_noBG.png");
         this.load.image("tileset_abandoned_houses", "assets/map/constructions/tileset_abandoned_houses.png");
-        this.load.image("tileset_three", "assets/map/constructions/tileset_three_noBG.png");
+        this.load.image("tileset_three", "assets/map/constructions/tileset_three.png");
 
         loadSprites(this);
         loadGoblinSprites(this);
