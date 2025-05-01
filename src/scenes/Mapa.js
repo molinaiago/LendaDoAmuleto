@@ -6,18 +6,21 @@
     } from "./Goblin.js";
     import { createEsqueleto, loadEsqueletoSprites } from "./Esqueleto.js";
     import { loadMagoSprites, createMago } from "./Mago.js";
+    import { loadPowerUpSprites, createPowerUpSystem } from "./Powerups.js";
+
 
     export class Mapa extends Phaser.Scene {
         constructor() {
             super("Mapa");
             this.player = null;
-            this.goblin = null;
             this.controls = null;
+            this.keyE = null;
+            this.currentPowerUp = null;
         }
 
         preload() {
             this.load.tilemapTiledJSON("mapa", "assets/mapa_vila_floresta.json");
-            this.load.image("tileset_cave", "assets/map/constructions/cave.png");
+            this.load.image("tileset_cave", "assets/map/constructions/tileset_cave.png");
             this.load.image("tileset_grass", "assets/map/blocos/tileset_grass.png");
             this.load.image("tileset_water", "assets/map/blocos/tileset_water.png");
             this.load.image("tiled_route", "assets/map/constructions/tiled_route.png");
@@ -30,7 +33,8 @@
             loadSprites(this);
             loadGoblinSprites(this);
             loadEsqueletoSprites(this);
-            loadMagoSprites(this)
+            loadMagoSprites(this);
+            loadPowerUpSprites(this);
         }
 
         create() {
@@ -64,6 +68,7 @@
             this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
             this.controls = createControls(this);
+            this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
             this.physics.add.collider(this.player, layer1);
             this.physics.add.collider(this.player, layer2);
@@ -80,6 +85,13 @@
             this.mago = createMago(this);
             this.mago.setPosition(this.player.x + 150, this.player.y);
 
+            const collidableLayers = [layer1, layer2];
+            this.powerUps = createPowerUpSystem(this, collidableLayers);
+
+            this.physics.add.overlap(this.player, this.powerUps, (_, pu) => {
+                this.currentPowerUp = pu;                    
+            });
+
             this.physics.add.collider(this.player, this.goblin, () => {
                 console.log("Colidiu com o goblin!");
             });
@@ -87,5 +99,16 @@
 
         update() {
             configControls(this.player, this.controls);
+
+            if (this.currentPowerUp && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+                if (this.currentPowerUp.type === "potion") {
+                    this.player.heal?.();
+                } else if (this.currentPowerUp.type === "shield") {
+                    this.player.activateShield?.();
+                }
+    
+                this.currentPowerUp.destroy();
+                this.currentPowerUp = null;
+            }
         }
     }
