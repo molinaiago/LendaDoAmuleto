@@ -1,7 +1,7 @@
 import { configControls, createControls } from './Controls.js';
 import { createPlayer, loadSprites } from './Player.js';
 import { loadGoblinSprites, createGoblin, updateGoblin } from './Goblin.js';
-import { createEsqueleto, loadEsqueletoSprites } from './Esqueleto.js';
+import { createEsqueleto, loadEsqueletoSprites, updateEsqueleto } from './Esqueleto.js';
 import { loadMagoSprites, createMago } from './Mago.js';
 import { loadPowerUpSprites, createPowerUpSystem } from './Powerups.js';
 
@@ -75,7 +75,7 @@ export class Mapa extends Phaser.Scene {
 
     // esqueleto
     this.esqueleto = createEsqueleto(this);
-    this.esqueleto.setPosition(this.player.x + 100, this.player.y);
+    this.esqueleto.setPosition(this.physics.world.bounds.width - 100, 100);
 
     // mago
     this.mago = createMago(this);
@@ -90,8 +90,13 @@ export class Mapa extends Phaser.Scene {
       this.goblin.takeDamage(0.5);
     });
 
+    this.physics.add.overlap(this.player.attackBox, this.esqueleto, () => {
+      this.esqueleto.takeDamage(0.5);
+    });
+
     this.hpText = this.add.text(10, 10, '', { fontSize: 16 }).setScrollFactor(0);
     this.playerHpText = this.add.text(10, 30, '', { fontSize: '16px', fill: '#ffffff' }).setScrollFactor(0);
+    this.esqueletoHpText = this.add.text(10, 50, '', { fontSize: '16px', fill: '#ffcc00' }).setScrollFactor(0);
   }
 
   update() {
@@ -109,11 +114,18 @@ export class Mapa extends Phaser.Scene {
     }
 
     updateGoblin(this, this.goblin, this.player);
+    updateEsqueleto(this, this.esqueleto, this.player);
 
     if (this.goblin.active) {
       this.hpText.setText(`Goblin HP: ${this.goblin.hp}/${this.goblin.maxHp}`).setColor('cyan');
     } else {
       this.hpText.setText('');
+    }
+
+    if (this.esqueleto.active) {
+      this.esqueletoHpText.setText(`Esqueleto HP: ${this.esqueleto.hp}/${this.esqueleto.maxHp}`);
+    } else {
+      this.esqueletoHpText.setText('');
     }
 
     this.playerHpText.setText(`Player HP: ${this.player.health}/${this.player.maxHealth}`);

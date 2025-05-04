@@ -1,4 +1,4 @@
-const SPEED = 250;
+const SPEED = 2500;
 
 export function createControls(scene) {
   const cursors = scene.input.keyboard.createCursorKeys();
@@ -124,12 +124,12 @@ export function configControls(player, cursors) {
     player.direction = 'right';
     moving = true;
   } else if (cursors.up.isDown) {
-    player.play('walk_up', true);
+    player.play('walk_down', true);
     player.setVelocityY(-SPEED);
     player.direction = 'up';
     moving = true;
   } else if (cursors.down.isDown) {
-    player.play('walk_down', true);
+    player.play('walk_up', true);
     player.setVelocityY(SPEED);
     player.direction = 'down';
     moving = true;
