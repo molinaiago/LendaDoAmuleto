@@ -2,17 +2,19 @@ import { Start } from './scenes/Start.js';
 import { Mapa } from './scenes/Mapa.js';
 
 const config = {
-    type: Phaser.AUTO,
-    width: 1280,
-    height: 720,
-    parent: 'game-container',
-    physics: {
-        default: 'arcade',
-        arcade: { arcade: {
-            gravity: { y: 0 },
-          }, }
+  type: Phaser.AUTO,
+  parent: 'game-container',
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 0 },
     },
-    scene: [Start, Mapa]
+  },
+  scene: [Start, Mapa],
 };
 
 new Phaser.Game(config);
