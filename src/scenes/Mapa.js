@@ -20,11 +20,8 @@ export class Mapa extends Phaser.Scene {
     this.load.image('tileset_grass', 'assets/map/blocos/tileset_grass.png');
     this.load.image('tileset_water', 'assets/map/blocos/tileset_water.png');
     this.load.image('tiled_route', 'assets/map/constructions/tiled_route.png');
-    this.load.image('tiled_extras', 'assets/map/constructions/tiled_extras_noBG.png');
-    this.load.image('tileset_houses', 'assets/map/constructions/tileset_houses_noBG.png');
-    this.load.image('tileset_houses2', 'assets/map/constructions/tileset_houses2_noBG.png');
-    this.load.image('tileset_abandoned_houses', 'assets/map/constructions/tileset_abandoned_houses.png');
-    this.load.image('tileset_three', 'assets/map/constructions/tileset_three.png');
+    this.load.image('tileset_houses_noBG', 'assets/map/constructions/tileset_houses_noBG.png');
+    this.load.image('tileset_three_noBG', 'assets/map/constructions/tileset_three_noBG.png');
 
     loadSprites(this);
     loadGoblinSprites(this);
@@ -41,18 +38,12 @@ export class Mapa extends Phaser.Scene {
       map.addTilesetImage('tileset_grass', 'tileset_grass'),
       map.addTilesetImage('tileset_water', 'tileset_water'),
       map.addTilesetImage('tiled_route', 'tiled_route'),
-      map.addTilesetImage('tiled_extras', 'tiled_extras'),
-      map.addTilesetImage('tileset_houses', 'tileset_houses'),
-      map.addTilesetImage('tileset_houses2', 'tileset_houses2'),
-      map.addTilesetImage('tileset_abandoned_houses', 'tileset_abandoned_houses'),
-      map.addTilesetImage('tileset_three', 'tileset_three'),
+      map.addTilesetImage('tileset_houses_noBG', 'tileset_houses_noBG'),
+      map.addTilesetImage('tileset_three_noBG', 'tileset_three_noBG'),
     ];
 
-    const layer1 = map.createLayer('Camada de Blocos 1', tilesets, 0, 0);
-    const layer2 = map.createLayer('Camada de Blocos 2', tilesets, 0, 0);
-
-    layer1.setCollisionByProperty({ collider: true });
-    layer2.setCollisionByProperty({ collider: true });
+    const layerSolo = map.createLayer('solo', tilesets, 0, 0);
+    const layerObjetos = map.createLayer('objetos', tilesets, 0, 0);
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
@@ -66,8 +57,8 @@ export class Mapa extends Phaser.Scene {
     this.controls = createControls(this);
     this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-    this.physics.add.collider(this.player, layer1);
-    this.physics.add.collider(this.player, layer2);
+    layerObjetos.setCollisionByProperty({ collider: true });
+    this.physics.add.collider(this.player, layerObjetos);
 
     // goblin
     this.goblin = createGoblin(this);
@@ -81,7 +72,7 @@ export class Mapa extends Phaser.Scene {
     this.mago = createMago(this);
     this.mago.setPosition(this.player.x + 150, this.player.y);
 
-    const walkLayers = [layer1, layer2];
+    const walkLayers = [layerSolo, layerObjetos];
     this.powerUps = createPowerUpSystem(this, walkLayers);
 
     this.physics.add.overlap(this.player, this.powerUps, (_, pu) => (this.currentPowerUp = pu));
