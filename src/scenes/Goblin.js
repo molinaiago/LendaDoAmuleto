@@ -1,24 +1,18 @@
 export function loadGoblinSprites(scene) {
-  scene.load.spritesheet('goblin_idle', 'assets/map/characters/goblin/idle.png', {
-    frameWidth: 64,
-    frameHeight: 64,
-  });
-  scene.load.spritesheet('goblin_run', 'assets/map/characters/goblin/walk.png', {
-    frameWidth: 64,
-    frameHeight: 64,
-  });
+  scene.load.spritesheet('goblin_idle', 'assets/map/characters/goblin/idle.png', { frameWidth: 64, frameHeight: 64 });
+  scene.load.spritesheet('goblin_run', 'assets/map/characters/goblin/walk.png', { frameWidth: 64, frameHeight: 64 });
   scene.load.spritesheet('goblin_attack', 'assets/map/characters/goblin/slash_128.png', {
     frameWidth: 128,
     frameHeight: 128,
   });
-  scene.load.spritesheet('goblin_hurt', 'assets/map/characters/goblin/hurt.png', {
-    frameWidth: 64,
-    frameHeight: 64,
-  });
+  scene.load.spritesheet('goblin_hurt', 'assets/map/characters/goblin/hurt.png', { frameWidth: 64, frameHeight: 64 });
+  scene.load.audio('attack_goblin', 'assets/sounds/ingame/attack-goblin.mp3');
 }
 
 export function createGoblin(scene) {
   const g = scene.physics.add.sprite(200, 200, 'goblin_run').setSize(32, 40).setOffset(16, 24);
+
+  g.attackSound = scene.sound.add('attack_goblin', { volume: 0.5 });
 
   createAnimations(scene);
   g.play('goblin_run_down');
@@ -71,10 +65,7 @@ function createAnimations(scene) {
   directions.forEach(({ dir, start }) => {
     scene.anims.create({
       key: `goblin_run_${dir}`,
-      frames: scene.anims.generateFrameNumbers('goblin_run', {
-        start: start,
-        end: start + 7,
-      }),
+      frames: scene.anims.generateFrameNumbers('goblin_run', { start: start, end: start + 7 }),
       frameRate: 12,
       repeat: -1,
     });
@@ -83,10 +74,7 @@ function createAnimations(scene) {
   ['up', 'left', 'down', 'right'].forEach((dir, i) => {
     scene.anims.create({
       key: `goblin_attack_${dir}`,
-      frames: scene.anims.generateFrameNumbers('goblin_attack', {
-        start: i * 6,
-        end: i * 6 + 5,
-      }),
+      frames: scene.anims.generateFrameNumbers('goblin_attack', { start: i * 6, end: i * 6 + 5 }),
       frameRate: 10,
       repeat: 0,
     });
@@ -94,10 +82,7 @@ function createAnimations(scene) {
 
   scene.anims.create({
     key: 'goblin_idle',
-    frames: scene.anims.generateFrameNumbers('goblin_idle', {
-      start: 0,
-      end: 7,
-    }),
+    frames: scene.anims.generateFrameNumbers('goblin_idle', { start: 0, end: 7 }),
     frameRate: 4,
     repeat: -1,
     yoyo: true,
@@ -105,10 +90,7 @@ function createAnimations(scene) {
 
   scene.anims.create({
     key: 'goblin_hurt',
-    frames: scene.anims.generateFrameNumbers('goblin_hurt', {
-      start: 0,
-      end: 5,
-    }),
+    frames: scene.anims.generateFrameNumbers('goblin_hurt', { start: 0, end: 5 }),
     frameRate: 10,
     repeat: 0,
   });
@@ -120,7 +102,6 @@ export function updateGoblin(scene, g, player) {
   const dx = player.x - g.x;
   const dy = player.y - g.y;
   const distSq = dx * dx + dy * dy;
-
   const dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down';
 
   if (distSq > g.detectRadiusSq) {
@@ -148,6 +129,7 @@ export function updateGoblin(scene, g, player) {
 
   g.state = 'attack';
   g.setVelocity(0);
+  g.attackSound.play();
   g.play(`goblin_attack_${dir}`, true);
 
   g.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + `goblin_attack_${dir}`, () => {

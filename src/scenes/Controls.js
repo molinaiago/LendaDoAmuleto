@@ -9,12 +9,8 @@ export function createControls(scene) {
 export function configControls(player, cursors) {
   const scene = player.scene;
 
-  if (player.isHurt || player.isAttacking) {
-    player.setVelocity(0);
-    return;
-  }
-
   if (cursors.space.isDown && !player.isAttacking && !player.isDashing) {
+    player.attackSound.play();
     player.isAttacking = true;
     player.setFlipX(false);
 
@@ -23,8 +19,8 @@ export function configControls(player, cursors) {
 
     const offset = 32;
     let x = player.x,
-      y = player.y;
-    let w = 40,
+      y = player.y,
+      w = 40,
       h = 20;
 
     switch (dir) {
@@ -56,18 +52,15 @@ export function configControls(player, cursors) {
 
     player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       player.attackBox.body.enable = false;
-      player.isAttacking = false;
       player.attackBox.setVisible(false);
+      player.isAttacking = false;
     });
 
     player.setVelocity(0);
     return;
   }
 
-  if (cursors.left.isDown) player.direction = 'left';
-  else if (cursors.right.isDown) player.direction = 'right';
-  else if (cursors.up.isDown) player.direction = 'up';
-  else if (cursors.down.isDown) player.direction = 'down';
+  if (player.isAttacking) return;
 
   if (
     Phaser.Input.Keyboard.JustDown(cursors.shift) &&

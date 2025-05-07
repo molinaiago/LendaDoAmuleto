@@ -4336,6 +4336,12 @@
          "imagewidth":513,
          "margin":0,
          "name":"tiled_route",
+         "properties":[
+                {
+                 "name":"surface",
+                 "type":"string",
+                 "value":"grass"
+                }],
          "spacing":0,
          "tilecount":240,
          "tileheight":32,
@@ -4349,6 +4355,12 @@
          "imagewidth":1024,
          "margin":0,
          "name":"tileset_cave",
+         "properties":[
+                {
+                 "name":"surface",
+                 "type":"string",
+                 "value":"stone"
+                }],
          "spacing":0,
          "tilecount":1024,
          "tileheight":32,
