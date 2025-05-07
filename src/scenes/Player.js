@@ -134,15 +134,20 @@ export function createPlayer(scene) {
     this.isHurt = true;
     this.play('player_hurt', true);
     this.setTintFill(0xff0000);
+
     scene.time.delayedCall(100, () => this.clearTint());
-    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+
+    scene.time.delayedCall(600, () => {
       this.isHurt = false;
-      if (this.health > 0) this.play('player_idle', true);
-      else {
+      if (this.health > 0) {
+        this.play('player_idle', true);
+      } else {
         this.setTint(0x000000);
         scene.physics.pause();
       }
     });
+
+    console.log(this.health);
   };
 
   return p;

@@ -1,4 +1,4 @@
-const SPEED = 2500;
+const SPEED = 500;
 
 export function createControls(scene) {
   const cursors = scene.input.keyboard.createCursorKeys();
