@@ -22,7 +22,6 @@ export function createEsqueleto(scene) {
   const e = scene.physics.add.sprite(200, 200, 'esqueleto_walk').setSize(32, 40).setOffset(16, 24);
 
   e.attackSound = scene.sound.add('attack_skeleton', { volume: 0.5 });
-
   createEsqueletoAnimations(scene);
   e.play('esqueleto_walk_down');
 
@@ -32,24 +31,20 @@ export function createEsqueleto(scene) {
   e.attackCooldown = 800;
   e.lastAttackTime = 0;
   e.state = 'idle';
-  e.maxHp = 20;
-  e.hp = 20;
+  e.maxHp = 30; // 30 HP
+  e.hp = 30;
 
   e.takeDamage = function (dmg = 1) {
     if (this.hp <= 0 || this.state === 'hurt') return;
-
     this.hp -= dmg;
     this.setTintFill(0xff0000);
     this.state = 'hurt';
     this.setVelocity(0);
     this.play('esqueleto_hurt', true);
-
     scene.time.delayedCall(100, () => this.clearTint());
-
     this.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'esqueleto_hurt', () => {
       if (this.hp <= 0) {
         this.destroy();
-        console.log('Esqueleto morreu!');
       } else {
         this.state = 'chase';
         const dx = scene.player.x - this.x;
@@ -70,25 +65,25 @@ function createEsqueletoAnimations(scene) {
     { dir: 'down', start: 16 },
     { dir: 'right', start: 24 },
   ];
-
   directions.forEach(({ dir, start }) => {
     scene.anims.create({
       key: `esqueleto_walk_${dir}`,
-      frames: scene.anims.generateFrameNumbers('esqueleto_walk', { start: start, end: start + 7 }),
+      frames: scene.anims.generateFrameNumbers('esqueleto_walk', { start, end: start + 7 }),
       frameRate: 12,
       repeat: -1,
     });
   });
-
   ['up', 'left', 'down', 'right'].forEach((dir, i) => {
     scene.anims.create({
       key: `esqueleto_attack_${dir}`,
-      frames: scene.anims.generateFrameNumbers('esqueleto_attack', { start: i * 6, end: i * 6 + 5 }),
+      frames: scene.anims.generateFrameNumbers('esqueleto_attack', {
+        start: i * 6,
+        end: i * 6 + 5,
+      }),
       frameRate: 10,
       repeat: 0,
     });
   });
-
   scene.anims.create({
     key: 'esqueleto_idle',
     frames: scene.anims.generateFrameNumbers('esqueleto_idle', { start: 0, end: 7 }),
@@ -96,7 +91,6 @@ function createEsqueletoAnimations(scene) {
     repeat: -1,
     yoyo: true,
   });
-
   scene.anims.create({
     key: 'esqueleto_hurt',
     frames: scene.anims.generateFrameNumbers('esqueleto_hurt', { start: 0, end: 5 }),
@@ -107,7 +101,6 @@ function createEsqueletoAnimations(scene) {
 
 export function updateEsqueleto(scene, e, player) {
   if (!e.active || !player || e.state === 'hurt' || e.state === 'attack') return;
-
   const dx = player.x - e.x;
   const dy = player.y - e.y;
   const distSq = dx * dx + dy * dy;
@@ -138,10 +131,9 @@ export function updateEsqueleto(scene, e, player) {
   e.setVelocity(0);
   e.attackSound.play();
   e.play(`esqueleto_attack_${dir}`, true);
-
   e.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + `esqueleto_attack_${dir}`, () => {
     if (Phaser.Math.Distance.Between(e.x, e.y, player.x, player.y) <= 40) {
-      player.takeDamage?.();
+      player.takeDamage(10);
     }
     e.lastAttackTime = scene.time.now;
     e.state = 'chase';

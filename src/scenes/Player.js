@@ -1,11 +1,20 @@
 export function loadSprites(scene) {
-  scene.load.spritesheet('player_idle', 'assets/map/characters/main/idle.png', { frameWidth: 64, frameHeight: 64 });
-  scene.load.spritesheet('player_walk', 'assets/map/characters/main/walk.png', { frameWidth: 64, frameHeight: 64 });
+  scene.load.spritesheet('player_idle', 'assets/map/characters/main/idle.png', {
+    frameWidth: 64,
+    frameHeight: 64,
+  });
+  scene.load.spritesheet('player_walk', 'assets/map/characters/main/walk.png', {
+    frameWidth: 64,
+    frameHeight: 64,
+  });
   scene.load.spritesheet('player_attack', 'assets/map/characters/main/slash_128.png', {
     frameWidth: 128,
     frameHeight: 128,
   });
-  scene.load.spritesheet('player_hurt', 'assets/map/characters/main/hurt.png', { frameWidth: 64, frameHeight: 64 });
+  scene.load.spritesheet('player_hurt', 'assets/map/characters/main/hurt.png', {
+    frameWidth: 64,
+    frameHeight: 64,
+  });
   scene.load.audio('attack_main', 'assets/sounds/ingame/attack-main.mp3');
 }
 
@@ -17,48 +26,56 @@ function createAnimations(scene) {
     repeat: -1,
     yoyo: true,
   });
+
   scene.anims.create({
     key: 'player_walk',
     frames: scene.anims.generateFrameNumbers('player_walk', { start: 27, end: 35 }),
     frameRate: 8,
     repeat: -1,
   });
+
   scene.anims.create({
     key: 'walk_up',
     frames: scene.anims.generateFrameNumbers('player_walk', { start: 18, end: 26 }),
     frameRate: 8,
     repeat: -1,
   });
+
   scene.anims.create({
     key: 'walk_down',
     frames: scene.anims.generateFrameNumbers('player_walk', { start: 0, end: 8 }),
     frameRate: 8,
     repeat: -1,
   });
+
   scene.anims.create({
     key: 'player_attack_up',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 0, end: 5 }),
     frameRate: 10,
     repeat: 0,
   });
+
   scene.anims.create({
     key: 'player_attack_left',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 6, end: 11 }),
     frameRate: 10,
     repeat: 0,
   });
+
   scene.anims.create({
     key: 'player_attack_down',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 12, end: 17 }),
     frameRate: 10,
     repeat: 0,
   });
+
   scene.anims.create({
     key: 'player_attack_right',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 18, end: 23 }),
     frameRate: 10,
     repeat: 0,
   });
+
   scene.anims.create({
     key: 'player_hurt',
     frames: scene.anims.generateFrameNumbers('player_hurt', { start: 0, end: 5 }),
@@ -70,12 +87,15 @@ function createAnimations(scene) {
 export function createPlayer(scene) {
   createAnimations(scene);
   const p = scene.physics.add.sprite(240, 240, 'player_idle');
+  p.body.setSize(32, 48).setOffset(16, 16);
+
   p.maxHealth = 100;
-  p.health = 50;
+  p.health = 100;
   p.shieldActive = false;
   p.isHurt = false;
   p.isAttacking = false;
   p.direction = 'down';
+
   p.isDashing = false;
   p.lastDashTime = 0;
   p.dashCooldown = 500;
@@ -88,7 +108,6 @@ export function createPlayer(scene) {
   p.attackBox.body.enable = false;
 
   p.attackSound = scene.sound.add('attack_main', { volume: 0.3 });
-
   scene.anims.on(Phaser.Animations.Events.ANIMATION_START, (anim, frame, sprite) => {
     if (sprite === p && anim.key.startsWith('player_attack')) {
       p.attackSound.play();
@@ -96,9 +115,7 @@ export function createPlayer(scene) {
   });
 
   p.heal = function () {
-    if (this.health < this.maxHealth) {
-      this.health++;
-    }
+    this.health = this.maxHealth;
   };
 
   p.activateShield = function () {
@@ -112,8 +129,8 @@ export function createPlayer(scene) {
   };
 
   p.takeDamage = function (d = 1) {
-    if (this.shieldActive || this.isHurt || this.isDodging || this.health <= 0) return;
-    this.health -= d;
+    if (this.shieldActive || this.isHurt || this.health <= 0) return;
+    this.health = Math.max(0, this.health - d);
     this.isHurt = true;
     this.play('player_hurt', true);
     this.setTintFill(0xff0000);
