@@ -3,7 +3,7 @@ import { createPlayer, loadSprites } from './Player.js';
 import { loadGoblinSprites, createGoblin, updateGoblin } from './Goblin.js';
 import { loadEsqueletoSprites, createEsqueleto, updateEsqueleto } from './Esqueleto.js';
 import { loadMagoSprites, createMago, updateMago } from './Mago.js';
-import { loadPowerUpSprites, createPowerUpSystem } from './PowerUps.js';
+import { loadPowerUpSprites, createPowerUpSystem } from './Powerups.js';
 
 export class Mapa extends Phaser.Scene {
   constructor() {
@@ -76,11 +76,11 @@ export class Mapa extends Phaser.Scene {
     for (let i = 0; i < 5; i++) this.spawnEsqueleto();
     this.spawnMago();
 
-    this.physics.add.collider(this.player, this.goblinGroup);
-    this.physics.add.collider(this.player, this.esqueletoGroup);
-    this.physics.add.collider(this.player, this.mago);
+    // this.physics.add.collider(this.player, this.goblinGroup);
+    // this.physics.add.collider(this.player, this.esqueletoGroup);
+    // this.physics.add.collider(this.player, this.mago);
 
-    this.powerUps = createPowerUpSystem(this, [this.groundLayer, objetosLayer]);
+    this.powerUps = createPowerUpSystem(this, [objetosLayer]);
     this.physics.add.overlap(this.player, this.powerUps, (_, pu) => {
       this.currentPowerUp = pu;
     });
@@ -122,7 +122,10 @@ export class Mapa extends Phaser.Scene {
   update() {
     configControls(this.player, this.controls);
 
+    if (this.player.isHurt) return;
+
     const moving = this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0;
+
     if (moving && !this.isStepping) {
       const ft = this.groundLayer.getTileAtWorldXY(this.player.x, this.player.y + this.player.height / 2);
       this.currentStepSound = ft?.properties?.surface === 'stone' ? this.stepStone : this.stepGrass;
@@ -134,7 +137,7 @@ export class Mapa extends Phaser.Scene {
       this.isStepping = false;
     }
 
-    //power-up
+    // power-up
     if (this.currentPowerUp && Phaser.Input.Keyboard.JustDown(this.keyE)) {
       if (this.currentPowerUp.type === 'potion') this.player.heal?.();
       else this.player.activateShield?.();

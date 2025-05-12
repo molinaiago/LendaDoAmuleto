@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 export function loadSprites(scene) {
   scene.load.spritesheet('player_idle', 'assets/map/characters/main/idle.png', {
     frameWidth: 64,
@@ -15,6 +17,7 @@ export function loadSprites(scene) {
     frameWidth: 64,
     frameHeight: 64,
   });
+
   scene.load.audio('attack_main', 'assets/sounds/ingame/attack-main.mp3');
 }
 
@@ -26,56 +29,54 @@ function createAnimations(scene) {
     repeat: -1,
     yoyo: true,
   });
-
-  scene.anims.create({
-    key: 'player_walk',
-    frames: scene.anims.generateFrameNumbers('player_walk', { start: 27, end: 35 }),
-    frameRate: 8,
-    repeat: -1,
-  });
-
-  scene.anims.create({
-    key: 'walk_up',
-    frames: scene.anims.generateFrameNumbers('player_walk', { start: 18, end: 26 }),
-    frameRate: 8,
-    repeat: -1,
-  });
-
   scene.anims.create({
     key: 'walk_down',
     frames: scene.anims.generateFrameNumbers('player_walk', { start: 0, end: 8 }),
     frameRate: 8,
     repeat: -1,
   });
-
+  scene.anims.create({
+    key: 'player_walk',
+    frames: scene.anims.generateFrameNumbers('player_walk', { start: 27, end: 35 }),
+    frameRate: 8,
+    repeat: -1,
+  });
+  scene.anims.create({
+    key: 'walk_up',
+    frames: scene.anims.generateFrameNumbers('player_walk', { start: 18, end: 26 }),
+    frameRate: 8,
+    repeat: -1,
+  });
   scene.anims.create({
     key: 'player_attack_up',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 0, end: 5 }),
     frameRate: 10,
     repeat: 0,
   });
-
   scene.anims.create({
     key: 'player_attack_left',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 6, end: 11 }),
     frameRate: 10,
     repeat: 0,
   });
-
   scene.anims.create({
     key: 'player_attack_down',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 12, end: 17 }),
     frameRate: 10,
     repeat: 0,
   });
-
   scene.anims.create({
     key: 'player_attack_right',
     frames: scene.anims.generateFrameNumbers('player_attack', { start: 18, end: 23 }),
     frameRate: 10,
     repeat: 0,
   });
-
+  scene.anims.create({
+    key: 'player_hurt',
+    frames: scene.anims.generateFrameNumbers('player_hurt', { start: 0, end: 5 }),
+    frameRate: 10,
+    repeat: 0,
+  });
   scene.anims.create({
     key: 'player_hurt',
     frames: scene.anims.generateFrameNumbers('player_hurt', { start: 0, end: 5 }),
@@ -86,6 +87,7 @@ function createAnimations(scene) {
 
 export function createPlayer(scene) {
   createAnimations(scene);
+
   const p = scene.physics.add.sprite(240, 240, 'player_idle');
   p.body.setSize(32, 48).setOffset(16, 16);
 
@@ -102,6 +104,9 @@ export function createPlayer(scene) {
   p.dashDuration = 150;
   p.dashSpeed = 1000;
 
+  p.invulTime = 300;
+  p.lastHitTime = 0;
+
   p.attackBox = scene.add.rectangle(0, 0, 40, 20, 0xff0000, 0.5).setOrigin(0.5);
   p.attackBox.setVisible(false);
   scene.physics.add.existing(p.attackBox);
@@ -109,13 +114,11 @@ export function createPlayer(scene) {
 
   p.attackSound = scene.sound.add('attack_main', { volume: 0.3 });
   scene.anims.on(Phaser.Animations.Events.ANIMATION_START, (anim, frame, sprite) => {
-    if (sprite === p && anim.key.startsWith('player_attack')) {
-      p.attackSound.play();
-    }
+    if (sprite === p && anim.key.startsWith('player_attack')) p.attackSound.play();
   });
 
   p.heal = function () {
-    this.health = this.maxHealth;
+    this.health = Math.min(this.health + 0.5 * this.maxHealth, this.maxHealth);
   };
 
   p.activateShield = function () {
@@ -128,26 +131,27 @@ export function createPlayer(scene) {
     });
   };
 
-  p.takeDamage = function (d = 1) {
-    if (this.shieldActive || this.isHurt || this.health <= 0) return;
-    this.health = Math.max(0, this.health - d);
+  p.takeDamage = function (dmg = 1) {
+    if (this.shieldActive || scene.time.now - this.lastHitTime < this.invulTime || this.health <= 0) return;
+
+    this.lastHitTime = scene.time.now;
+    this.health = Math.max(0, this.health - dmg);
+
     this.isHurt = true;
+    this.setVelocity(0);
     this.play('player_hurt', true);
     this.setTintFill(0xff0000);
-
     scene.time.delayedCall(100, () => this.clearTint());
 
-    scene.time.delayedCall(600, () => {
+    this.once('animationcomplete-player_hurt', () => {
       this.isHurt = false;
-      if (this.health > 0) {
-        this.play('player_idle', true);
-      } else {
+      if (this.health <= 0) {
         this.setTint(0x000000);
         scene.physics.pause();
       }
     });
 
-    console.log(this.health);
+    console.log('HP →', this.health);
   };
 
   return p;

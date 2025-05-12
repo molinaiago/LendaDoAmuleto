@@ -9,6 +9,11 @@ export function createControls(scene) {
 export function configControls(player, cursors) {
   const scene = player.scene;
 
+  if (player.isHurt) {
+    player.setVelocity(0);
+    return;
+  }
+
   if (cursors.space.isDown && !player.isAttacking && !player.isDashing) {
     player.attackSound.play();
     player.isAttacking = true;
@@ -48,7 +53,7 @@ export function configControls(player, cursors) {
 
     player.attackBox.setSize(w, h).setPosition(x, y);
     player.attackBox.body.enable = true;
-    player.attackBox.setVisible(true);
+    // player.attackBox.setVisible(true);
 
     player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       player.attackBox.body.enable = false;
