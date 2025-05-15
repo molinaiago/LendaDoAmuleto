@@ -1,3 +1,5 @@
+// src/scenes/Mapa.js
+
 import { configControls, createControls } from './Controls.js';
 import { createPlayer, loadSprites } from './Player.js';
 import { loadGoblinSprites, createGoblin, updateGoblin } from './Goblin.js';
@@ -61,7 +63,8 @@ export class Mapa extends Phaser.Scene {
       .setPosition(64, map.heightInPixels - 64)
       .setCollideWorldBounds(true);
 
-    this.cameras.main.startFollow(this.player).setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.cameras.main.startFollow(this.player)
+      .setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     this.controls = createControls(this);
     this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
@@ -76,10 +79,6 @@ export class Mapa extends Phaser.Scene {
     for (let i = 0; i < 5; i++) this.spawnEsqueleto();
     this.spawnMago();
 
-    // this.physics.add.collider(this.player, this.goblinGroup);
-    // this.physics.add.collider(this.player, this.esqueletoGroup);
-    // this.physics.add.collider(this.player, this.mago);
-
     this.powerUps = createPowerUpSystem(this, [objetosLayer]);
     this.physics.add.overlap(this.player, this.powerUps, (_, pu) => {
       this.currentPowerUp = pu;
@@ -93,7 +92,7 @@ export class Mapa extends Phaser.Scene {
     this.stepStone = this.sound.add('step_stone', { loop: true, volume: 1.0 });
 
     this.hpBarBg = this.add.graphics().setScrollFactor(0);
-    this.hpBar = this.add.graphics().setScrollFactor(0);
+    this.hpBar   = this.add.graphics().setScrollFactor(0);
   }
 
   spawnGoblin() {
@@ -127,8 +126,12 @@ export class Mapa extends Phaser.Scene {
     const moving = this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0;
 
     if (moving && !this.isStepping) {
-      const ft = this.groundLayer.getTileAtWorldXY(this.player.x, this.player.y + this.player.height / 2);
-      this.currentStepSound = ft?.properties?.surface === 'stone' ? this.stepStone : this.stepGrass;
+      const wx = this.player.x;
+      const wy = this.player.y + this.player.height / 2;
+      // pega o tile do solo (onde está o tileset_cave com surface: 'stone')
+      const ft = this.groundLayer.getTileAtWorldXY(wx, wy);
+      const surface = ft?.properties?.surface;
+      this.currentStepSound = surface === 'stone' ? this.stepStone : this.stepGrass;
       this.currentStepSound.play({ seek: 0.05 });
       this.isStepping = true;
     }
@@ -137,7 +140,6 @@ export class Mapa extends Phaser.Scene {
       this.isStepping = false;
     }
 
-    // power-up
     if (this.currentPowerUp && Phaser.Input.Keyboard.JustDown(this.keyE)) {
       if (this.currentPowerUp.type === 'potion') this.player.heal?.();
       else this.player.activateShield?.();
@@ -145,17 +147,17 @@ export class Mapa extends Phaser.Scene {
       this.currentPowerUp = null;
     }
 
-    this.goblinGroup.getChildren().forEach((g) => updateGoblin(this, g, this.player));
-    this.esqueletoGroup.getChildren().forEach((e) => updateEsqueleto(this, e, this.player));
+    this.goblinGroup.getChildren().forEach(g => updateGoblin(this, g, this.player));
+    this.esqueletoGroup.getChildren().forEach(e => updateEsqueleto(this, e, this.player));
     updateMago(this, this.mago, this.player);
 
     // barra de vida do jogador
     const pct = Phaser.Math.Clamp(this.player.health / this.player.maxHealth, 0, 1);
-    const barW = 200,
-      barH = 16;
-    this.hpBarBg.clear().fillStyle(0x000000, 0.5).fillRect(20, 20, barW, barH);
-    this.hpBar
-      .clear()
+    const barW = 200, barH = 16;
+    this.hpBarBg.clear()
+      .fillStyle(0x000000, 0.5)
+      .fillRect(20, 20, barW, barH);
+    this.hpBar.clear()
       .fillStyle(0xff0000, 1.0)
       .fillRect(20, 20, barW * pct, barH);
   }

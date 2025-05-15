@@ -4328,6 +4328,12 @@
          "imagewidth":513,
          "margin":0,
          "name":"tiled_route",
+         "properties":[
+                {
+                 "name":"surface",
+                 "type":"string",
+                 "value":"grass"
+                }],
          "spacing":0,
          "tilecount":240,
          "tileheight":32,
@@ -4380,6 +4386,85 @@
          "spacing":0,
          "tilecount":300,
          "tileheight":32,
+         "tiles":[
+                {
+                 "id":44,
+                 "objectgroup":
+                    {
+                     "draworder":"index",
+                     "id":2,
+                     "name":"",
+                     "objects":[
+                            {
+                             "height":32,
+                             "id":1,
+                             "name":"",
+                             "rotation":0,
+                             "type":"",
+                             "visible":true,
+                             "width":18,
+                             "x":0,
+                             "y":0
+                            }],
+                     "opacity":1,
+                     "type":"objectgroup",
+                     "visible":true,
+                     "x":0,
+                     "y":0
+                    }
+                }, 
+                {
+                 "id":64,
+                 "objectgroup":
+                    {
+                     "draworder":"index",
+                     "id":2,
+                     "name":"",
+                     "objects":[
+                            {
+                             "height":32,
+                             "id":1,
+                             "name":"",
+                             "rotation":0,
+                             "type":"",
+                             "visible":true,
+                             "width":18,
+                             "x":0,
+                             "y":0
+                            }],
+                     "opacity":1,
+                     "type":"objectgroup",
+                     "visible":true,
+                     "x":0,
+                     "y":0
+                    }
+                }, 
+                {
+                 "id":84,
+                 "objectgroup":
+                    {
+                     "draworder":"index",
+                     "id":2,
+                     "name":"",
+                     "objects":[
+                            {
+                             "height":31,
+                             "id":1,
+                             "name":"",
+                             "rotation":0,
+                             "type":"",
+                             "visible":true,
+                             "width":14,
+                             "x":0,
+                             "y":0
+                            }],
+                     "opacity":1,
+                     "type":"objectgroup",
+                     "visible":true,
+                     "x":0,
+                     "y":0
+                    }
+                }],
          "tilewidth":32,
          "transparentcolor":"#ffffff"
         }, 
@@ -4457,9 +4542,25 @@
          "imagewidth":1024,
          "margin":0,
          "name":"tileset_cave",
+         "properties":[
+                {
+                 "name":"surface",
+                 "type":"string",
+                 "value":"stone"
+                }],
          "spacing":0,
          "tilecount":1024,
          "tileheight":32,
+         "tiles":[
+                {
+                 "id":0,
+                 "properties":[
+                        {
+                         "name":"surface",
+                         "type":"string",
+                         "value":"stone"
+                        }]
+                }],
          "tilewidth":32
         }],
  "tilewidth":32,
