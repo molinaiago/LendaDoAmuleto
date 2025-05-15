@@ -1,34 +1,33 @@
-// src/scenes/Mapa.js
-
 import { configControls, createControls } from './Controls.js';
-import { createPlayer, loadSprites } from './Player.js';
-import { loadGoblinSprites, createGoblin, updateGoblin } from './Goblin.js';
+import { createPlayer, loadSprites }         from './Player.js';
+import { loadGoblinSprites, createGoblin, updateGoblin }       from './Goblin.js';
 import { loadEsqueletoSprites, createEsqueleto, updateEsqueleto } from './Esqueleto.js';
-import { loadMagoSprites, createMago, updateMago } from './Mago.js';
-import { loadPowerUpSprites, createPowerUpSystem } from './Powerups.js';
+import { loadMagoSprites, createMago, updateMago }             from './Mago.js';
+import { loadPowerUpSprites, createPowerUpSystem }             from './Powerups.js';
 
 export class Mapa extends Phaser.Scene {
   constructor() {
     super('Mapa');
-    this.goblinGroup = null;
-    this.esqueletoGroup = null;
-    this.mago = null;
-    this.isStepping = false;
-    this.currentStepSound = null;
-    this.currentPowerUp = null;
-    this.keyE = null;
-    this.isPaused = false;
+    this.goblinGroup     = null;
+    this.esqueletoGroup  = null;
+    this.mago            = null;
+    this.isStepping      = false;
+    this.currentStepSound= null;
+    this.currentPowerUp  = null;
+    this.keyE            = null;
+    this.isPaused        = false;
+    this.isDead          = false; 
   }
 
   preload() {
     this.load.tilemapTiledJSON('mapa', 'assets/mapa_vila_floresta.json');
-    this.load.image('tileset_cave', 'assets/map/constructions/tileset_cave.png');
-    this.load.image('tileset_grass', 'assets/map/blocos/tileset_grass.png');
-    this.load.image('tileset_water', 'assets/map/blocos/tileset_water.png');
-    this.load.image('tiled_route', 'assets/map/constructions/tiled_route.png');
-    this.load.image('tileset_houses_noBG', 'assets/map/constructions/tileset_houses_noBG.png');
-    this.load.image('tileset_three_noBG', 'assets/map/constructions/tileset_three_noBG.png');
-    this.load.image('tileset_cave_obstacles', 'assets/map/constructions/tileset_cave_obstacles.png');
+    this.load.image('tileset_cave',               'assets/map/constructions/tileset_cave.png');
+    this.load.image('tileset_grass',              'assets/map/blocos/tileset_grass.png');
+    this.load.image('tileset_water',              'assets/map/blocos/tileset_water.png');
+    this.load.image('tiled_route',                'assets/map/constructions/tiled_route.png');
+    this.load.image('tileset_houses_noBG',        'assets/map/constructions/tileset_houses_noBG.png');
+    this.load.image('tileset_three_noBG',         'assets/map/constructions/tileset_three_noBG.png');
+    this.load.image('tileset_cave_obstacles',     'assets/map/constructions/tileset_cave_obstacles.png');
 
     loadSprites(this);
     loadGoblinSprites(this);
@@ -41,22 +40,23 @@ export class Mapa extends Phaser.Scene {
   }
 
   create() {
-    // reseta flag de pausa ao iniciar/criar a cena
+
     this.isPaused = false;
+    this.isDead   = false;
 
     const map = this.make.tilemap({ key: 'mapa' });
     const tilesets = [
-      map.addTilesetImage('tileset_cave', 'tileset_cave'),
-      map.addTilesetImage('tileset_grass', 'tileset_grass'),
-      map.addTilesetImage('tileset_water', 'tileset_water'),
-      map.addTilesetImage('tiled_route', 'tiled_route'),
-      map.addTilesetImage('tileset_houses_noBG', 'tileset_houses_noBG'),
-      map.addTilesetImage('tileset_three_noBG', 'tileset_three_noBG'),
+      map.addTilesetImage('tileset_cave',           'tileset_cave'),
+      map.addTilesetImage('tileset_grass',          'tileset_grass'),
+      map.addTilesetImage('tileset_water',          'tileset_water'),
+      map.addTilesetImage('tiled_route',            'tiled_route'),
+      map.addTilesetImage('tileset_houses_noBG',    'tileset_houses_noBG'),
+      map.addTilesetImage('tileset_three_noBG',     'tileset_three_noBG'),
       map.addTilesetImage('tileset_cave_obstacles', 'tileset_cave_obstacles'),
     ];
 
-    this.groundLayer = map.createLayer('solo', tilesets, 0, 0);
-    const objetosLayer = map.createLayer('objetos', tilesets, 0, 0);
+    this.groundLayer  = map.createLayer('solo',    tilesets, 0, 0);
+    const objetosLayer= map.createLayer('objetos', tilesets, 0, 0);
 
     this.groundLayer.setCollisionByExclusion([-1]);
     objetosLayer.setCollisionByExclusion([-1]);
@@ -71,14 +71,13 @@ export class Mapa extends Phaser.Scene {
       .setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     this.controls = createControls(this);
-    this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    this.keyE     = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
     this.physics.add.collider(this.player, this.groundLayer);
     this.physics.add.collider(this.player, objetosLayer);
 
-    this.goblinGroup = this.physics.add.group();
+    this.goblinGroup    = this.physics.add.group();
     this.esqueletoGroup = this.physics.add.group();
-
     for (let i = 0; i < 5; i++) this.spawnGoblin();
     for (let i = 0; i < 5; i++) this.spawnEsqueleto();
     this.spawnMago();
@@ -88,26 +87,26 @@ export class Mapa extends Phaser.Scene {
       this.currentPowerUp = pu;
     });
 
-    this.physics.add.overlap(this.player.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
+  
+    this.physics.add.overlap(this.player.attackBox, this.goblinGroup,    (_, g) => g.takeDamage?.(10));
     this.physics.add.overlap(this.player.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
-    this.physics.add.overlap(this.player.attackBox, this.mago, () => this.mago.takeDamage?.(10));
+    this.physics.add.overlap(this.player.attackBox, this.mago,           () => this.mago.takeDamage?.(10));
 
     this.stepGrass = this.sound.add('step_grass', { loop: true, volume: 1.0 });
     this.stepStone = this.sound.add('step_stone', { loop: true, volume: 1.0 });
 
+  
     this.hpBarBg = this.add.graphics().setScrollFactor(0);
     this.hpBar   = this.add.graphics().setScrollFactor(0);
 
-    // listener da tecla ESC para pausar
     this.input.keyboard.on('keydown-ESC', () => {
-      if (!this.isPaused) {
+      if (!this.isPaused && !this.isDead) {
         this.scene.launch('PauseScene', { parentSceneKey: 'Mapa' });
         this.scene.pause();
         this.isPaused = true;
       }
     });
 
-    // ao voltar do PauseScene, resetamos a flag
     this.events.on(Phaser.Scenes.Events.RESUME, () => {
       this.isPaused = false;
     });
@@ -137,12 +136,23 @@ export class Mapa extends Phaser.Scene {
   }
 
   update() {
+    if (this.isDead) return;
+
+    if (!this.isDead && this.player.health <= 0) {
+      this.isDead = true;
+      this.currentStepSound?.stop();
+      this.player.body.setVelocity(0, 0);
+      this.player.anims.play('player_hurt');
+      this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.scene.launch('DeathScene', { parentSceneKey: 'Mapa' });
+        this.scene.pause();
+      });
+      return;
+    }
+
     configControls(this.player, this.controls);
 
-    if (this.player.isHurt) return;
-
     const moving = this.player.body.velocity.x !== 0 || this.player.body.velocity.y !== 0;
-
     if (moving && !this.isStepping) {
       const wx = this.player.x;
       const wy = this.player.y + this.player.height / 2;
@@ -163,12 +173,10 @@ export class Mapa extends Phaser.Scene {
       this.currentPowerUp.destroy();
       this.currentPowerUp = null;
     }
-
     this.goblinGroup.getChildren().forEach(g => updateGoblin(this, g, this.player));
     this.esqueletoGroup.getChildren().forEach(e => updateEsqueleto(this, e, this.player));
     updateMago(this, this.mago, this.player);
 
-    // barra de vida do jogador
     const pct = Phaser.Math.Clamp(this.player.health / this.player.maxHealth, 0, 1);
     const barW = 200, barH = 16;
     this.hpBarBg.clear()
