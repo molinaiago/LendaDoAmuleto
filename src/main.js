@@ -1,5 +1,6 @@
 import { Start } from './scenes/Start.js';
 import { Mapa } from './scenes/Mapa.js';
+import { PauseScene } from './scenes/PauseScene.js';  // 1) importa
 
 const config = {
   type: Phaser.AUTO,
@@ -18,8 +19,11 @@ const config = {
       debug: false,
     },
   },
-
-  scene: [Start, Mapa],
+  scene: [
+    Start,
+    Mapa,
+    PauseScene
+  ],
   render: {
     pixelArt: true,
     antialiasGL: false,

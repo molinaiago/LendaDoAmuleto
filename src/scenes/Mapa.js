@@ -17,6 +17,7 @@ export class Mapa extends Phaser.Scene {
     this.currentStepSound = null;
     this.currentPowerUp = null;
     this.keyE = null;
+    this.isPaused = false;
   }
 
   preload() {
@@ -40,6 +41,9 @@ export class Mapa extends Phaser.Scene {
   }
 
   create() {
+    // reseta flag de pausa ao iniciar/criar a cena
+    this.isPaused = false;
+
     const map = this.make.tilemap({ key: 'mapa' });
     const tilesets = [
       map.addTilesetImage('tileset_cave', 'tileset_cave'),
@@ -93,6 +97,20 @@ export class Mapa extends Phaser.Scene {
 
     this.hpBarBg = this.add.graphics().setScrollFactor(0);
     this.hpBar   = this.add.graphics().setScrollFactor(0);
+
+    // listener da tecla ESC para pausar
+    this.input.keyboard.on('keydown-ESC', () => {
+      if (!this.isPaused) {
+        this.scene.launch('PauseScene', { parentSceneKey: 'Mapa' });
+        this.scene.pause();
+        this.isPaused = true;
+      }
+    });
+
+    // ao voltar do PauseScene, resetamos a flag
+    this.events.on(Phaser.Scenes.Events.RESUME, () => {
+      this.isPaused = false;
+    });
   }
 
   spawnGoblin() {
@@ -128,7 +146,6 @@ export class Mapa extends Phaser.Scene {
     if (moving && !this.isStepping) {
       const wx = this.player.x;
       const wy = this.player.y + this.player.height / 2;
-      // pega o tile do solo (onde está o tileset_cave com surface: 'stone')
       const ft = this.groundLayer.getTileAtWorldXY(wx, wy);
       const surface = ft?.properties?.surface;
       this.currentStepSound = surface === 'stone' ? this.stepStone : this.stepGrass;
