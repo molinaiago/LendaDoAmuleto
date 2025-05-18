@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 export function loadEsqueletoSprites(scene) {
   scene.load.spritesheet('esqueleto_walk', 'assets/map/characters/esqueleto/walk.png', {
     frameWidth: 64,
@@ -18,114 +20,145 @@ export function loadEsqueletoSprites(scene) {
   scene.load.audio('attack_skeleton', 'assets/sounds/ingame/attack-skeleton.mp3');
 }
 
-export function createEsqueleto(scene) {
-  const e = scene.physics.add.sprite(200, 200, 'esqueleto_walk')
-    .setSize(32, 40).setOffset(16, 24);
-  e.attackSound = scene.sound.add('attack_skeleton', { volume: 0.5 });
-  createEsqueletoAnimations(scene);
-  e.play('esqueleto_walk_down');
+function safePlay(sprite, key) {
+  if (sprite.anims.currentAnim?.key !== key) sprite.play(key, true);
+}
 
-  e.detectRadiusSq = 500*500;
-  e.attackRadiusSq = 40*40;
+export function createEsqueleto(scene, x = 200, y = 200) {
+  const e = scene.physics.add.sprite(x, y, 'esqueleto_idle').setSize(32, 40).setOffset(16, 24);
+
+  e.attackSound = scene.sound.add('attack_skeleton', { volume: 0.5 });
+
+  e.aggroRadiusSq = 500 * 500;
+  e.disengageRadiusSq = 580 * 580;
+  e.attackRadiusSq = 40 * 40;
   e.speed = 90;
   e.attackCooldown = 800;
   e.lastAttackTime = 0;
   e.state = 'idle';
+  e.lastDir = 'down';
+
   e.maxHp = 30;
   e.hp = 30;
 
-  e.takeDamage = function(dmg = 1) {
+  if (!scene.anims.exists('esqueleto_walk_down')) createEsqueletoAnimations(scene);
+
+  safePlay(e, 'esqueleto_idle');
+
+  e.takeDamage = function (dmg = 1) {
     if (this.hp <= 0 || this.state === 'hurt') return;
+
     this.hp -= dmg;
+    scene.showDamage?.(this.x, this.y - 20, dmg);
+
     this.setTintFill(0xff0000);
     this.state = 'hurt';
     this.setVelocity(0);
-    this.play('esqueleto_hurt', true);
+    safePlay(this, 'esqueleto_hurt');
     scene.time.delayedCall(100, () => this.clearTint());
 
-    this.once(
-      Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'esqueleto_hurt',
-      () => {
-        if (this.hp <= 0) {
-          // fade out e destroy
-          scene.tweens.add({
-            targets: this,
-            alpha: 0,
-            duration: 1000,
-            ease: 'Power1',
-            onComplete: () => this.destroy()
-          });
-        } else {
-          this.state = 'chase';
-          const dx = scene.player.x - this.x;
-          const dy = scene.player.y - this.y;
-          const dir = Math.abs(dx)>Math.abs(dy)
-            ? (dx<0?'left':'right')
-            : (dy<0?'up':'down');
-          this.play(`esqueleto_walk_${dir}`, true);
-        }
+    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      if (this.hp <= 0) {
+        scene.tweens.add({
+          targets: this,
+          alpha: 0,
+          duration: 1000,
+          ease: 'Power1',
+          onComplete: () => this.destroy(),
+        });
+      } else {
+        this.state = 'chase';
+        safePlay(this, `esqueleto_walk_${this.lastDir}`);
       }
-    );
+    });
   };
 
   return e;
 }
 
 function createEsqueletoAnimations(scene) {
-  const dirs = ['up','left','down','right'];
-  dirs.forEach((dir,i)=>{
+  const dirs = ['up', 'left', 'down', 'right'];
+  dirs.forEach((dir, i) => {
     scene.anims.create({
       key: `esqueleto_walk_${dir}`,
-      frames: scene.anims.generateFrameNumbers('esqueleto_walk',{ start: i*8, end: i*8+7 }),
-      frameRate:12, repeat:-1
+      frames: scene.anims.generateFrameNumbers('esqueleto_walk', { start: i * 8, end: i * 8 + 7 }),
+      frameRate: 12,
+      repeat: -1,
     });
     scene.anims.create({
       key: `esqueleto_attack_${dir}`,
-      frames: scene.anims.generateFrameNumbers('esqueleto_attack',{
-        start: i*6, end: i*6+5
-      }),
-      frameRate:10, repeat:0
+      frames: scene.anims.generateFrameNumbers('esqueleto_attack', { start: i * 6, end: i * 6 + 5 }),
+      frameRate: 10,
+      repeat: 0,
     });
   });
+
   scene.anims.create({
-    key:'esqueleto_idle',
-    frames: scene.anims.generateFrameNumbers('esqueleto_idle',{ start:0,end:7 }),
-    frameRate:4, repeat:-1, yoyo:true
+    key: 'esqueleto_idle',
+    frames: scene.anims.generateFrameNumbers('esqueleto_idle', { start: 0, end: 7 }),
+    frameRate: 4,
+    repeat: -1,
+    yoyo: true,
   });
+
   scene.anims.create({
-    key:'esqueleto_hurt',
-    frames: scene.anims.generateFrameNumbers('esqueleto_hurt',{ start:0,end:5 }),
-    frameRate:10, repeat:0
+    key: 'esqueleto_hurt',
+    frames: scene.anims.generateFrameNumbers('esqueleto_hurt', { start: 0, end: 5 }),
+    frameRate: 10,
+    repeat: 0,
   });
 }
 
-export function updateEsqueleto(scene,e,player) {
-  if(!e.active||!player||e.state==='hurt'||e.state==='attack')return;
-  const dx=player.x-e.x, dy=player.y-e.y, distSq=dx*dx+dy*dy;
-  const dir = Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down');
+export function updateEsqueleto(scene, e, player) {
+  if (!e.active || !player || e.state === 'hurt') return;
 
-  if(distSq>e.detectRadiusSq){
-    if(e.state!=='idle'){
-      e.state='idle'; e.setVelocity(0); e.play('esqueleto_idle',true);
-    }
-  } else if(distSq>e.attackRadiusSq){
-    if(e.state!=='chase') e.state='chase';
-    e.play(`esqueleto_walk_${dir}`,true);
-    scene.physics.moveToObject(e,player,e.speed);
-  } else if(scene.time.now - e.lastAttackTime >= e.attackCooldown){
-    e.state='attack'; e.setVelocity(0);
-    e.attackSound.play();
-    e.play(`esqueleto_attack_${dir}`,true);
-    e.once(
-      Phaser.Animations.Events.ANIMATION_COMPLETE_KEY+`esqueleto_attack_${dir}`,
-      ()=>{
-        if(Phaser.Math.Distance.Between(e.x,e.y,player.x,player.y)<=40)
-          player.takeDamage(10);
-        e.lastAttackTime = scene.time.now;
-        e.state='chase';
+  const dx = player.x - e.x;
+  const dy = player.y - e.y;
+  const distSq = dx * dx + dy * dy;
+
+  const dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down';
+  e.lastDir = dir;
+
+  switch (e.state) {
+    case 'idle':
+      if (distSq <= e.aggroRadiusSq) {
+        e.state = 'chase';
+        safePlay(e, `esqueleto_walk_${dir}`);
       }
-    );
-  } else {
-    e.setVelocity(0);
+      break;
+
+    case 'chase':
+      if (distSq >= e.disengageRadiusSq) {
+        e.state = 'idle';
+        e.setVelocity(0);
+        safePlay(e, 'esqueleto_idle');
+        return;
+      }
+
+      if (distSq <= e.attackRadiusSq) {
+        if (scene.time.now - e.lastAttackTime >= e.attackCooldown) {
+          e.state = 'attack';
+          e.setVelocity(0);
+          e.attackSound.play();
+          safePlay(e, `esqueleto_attack_${dir}`);
+          e.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+            if (Phaser.Math.Distance.Between(e.x, e.y, player.x, player.y) <= 40) {
+              player.takeDamage?.(10);
+            }
+            e.lastAttackTime = scene.time.now;
+            e.state = 'chase';
+          });
+        } else {
+          e.setVelocity(0);
+          safePlay(e, `esqueleto_walk_${dir}`);
+        }
+      } else {
+        scene.physics.moveToObject(e, player, e.speed);
+        safePlay(e, `esqueleto_walk_${dir}`);
+      }
+      break;
+
+    case 'attack':
+      break;
   }
 }
