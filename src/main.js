@@ -2,6 +2,7 @@ import { Start } from './scenes/Start.js';
 import { Mapa } from './scenes/Mapa.js';
 import { PauseScene } from './scenes/PauseScene.js';
 import { DeathScene } from './scenes/DeathScene.js';
+import { VictoryScene } from './scenes/VictoryScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -24,7 +25,8 @@ const config = {
     Start,
     Mapa,
     PauseScene,  
-    DeathScene  
+    DeathScene, 
+    VictoryScene
   ],
   render: {
     pixelArt: true,
