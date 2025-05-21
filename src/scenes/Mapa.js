@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { configControls, createControls } from './Controls.js';
 import { createPlayer, loadSprites } from './Player.js';
+import { loadSprites2, createPlayer2 } from './Player2.js';
 import { loadGoblinSprites, createGoblin, updateGoblin } from './Goblin.js';
 import { loadEsqueletoSprites, createEsqueleto, updateEsqueleto } from './Esqueleto.js';
 import { loadMagoSprites, createMago, updateMago } from './Mago.js';
@@ -32,6 +33,7 @@ export class Mapa extends Phaser.Scene {
     this.load.image('tileset_cave_obstacles', 'assets/map/constructions/tileset_cave_obstacles.png');
 
     loadSprites(this);
+    loadSprites2(this);
     loadGoblinSprites(this);
     loadEsqueletoSprites(this);
     loadMagoSprites(this);
@@ -67,6 +69,10 @@ export class Mapa extends Phaser.Scene {
     this.player = createPlayer(this)
       .setPosition(64, map.heightInPixels - 64)
       .setCollideWorldBounds(true);
+      this.player2 = createPlayer2(this)
+      setPosition(64, map.heightInPixels - 64)
+      .setCollideWorldBounds(true);
+
 
     this.cameras.main.startFollow(this.player).setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
