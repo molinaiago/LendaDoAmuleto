@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import { getClosestTarget, safePlay } from '../utils/aiHelpers.js';
 
 export function loadGoblinSprites(scene) {
   scene.load.spritesheet('goblin_idle', 'assets/map/characters/goblin/idle.png', { frameWidth: 64, frameHeight: 64 });
@@ -9,10 +9,6 @@ export function loadGoblinSprites(scene) {
   });
   scene.load.spritesheet('goblin_hurt', 'assets/map/characters/goblin/hurt.png', { frameWidth: 64, frameHeight: 64 });
   scene.load.audio('attack_goblin', 'assets/sounds/ingame/attack-goblin.mp3');
-}
-
-function safePlay(sprite, key) {
-  if (sprite.anims.currentAnim?.key !== key) sprite.play(key, true);
 }
 
 export function createGoblin(scene, x = 200, y = 200) {
@@ -103,12 +99,11 @@ function createAnimations(scene) {
   });
 }
 
-export function updateGoblin(scene, g, player) {
-  if (!g.active || !player || g.state === 'hurt') return;
+export function updateGoblin(scene, g, players) {
+  if (!g.active || g.state === 'hurt') return;
 
-  const dx = player.x - g.x;
-  const dy = player.y - g.y;
-  const distSq = dx * dx + dy * dy;
+  const { target, dx, dy, distSq } = getClosestTarget(g, players);
+  if (!target) return;
 
   const dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down';
   g.lastDir = dir;
@@ -128,7 +123,6 @@ export function updateGoblin(scene, g, player) {
         safePlay(g, 'goblin_idle');
         return;
       }
-
       if (distSq <= g.attackRadiusSq) {
         if (scene.time.now - g.lastAttackTime >= g.attackCooldown) {
           g.state = 'attack';
@@ -136,8 +130,8 @@ export function updateGoblin(scene, g, player) {
           g.attackSound.play();
           safePlay(g, `goblin_attack_${dir}`);
           g.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-            if (Phaser.Math.Distance.Between(g.x, g.y, player.x, player.y) <= 40) {
-              player.takeDamage?.(10);
+            if (Phaser.Math.Distance.Between(g.x, g.y, target.x, target.y) <= 40) {
+              target.takeDamage?.(10);
             }
             g.lastAttackTime = scene.time.now;
             g.state = 'chase';
@@ -147,7 +141,7 @@ export function updateGoblin(scene, g, player) {
           safePlay(g, `goblin_run_${dir}`);
         }
       } else {
-        scene.physics.moveToObject(g, player, g.speed);
+        scene.physics.moveToObject(g, target, g.speed);
         safePlay(g, `goblin_run_${dir}`);
       }
       break;

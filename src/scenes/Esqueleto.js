@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { getClosestTarget, safePlay } from '../utils/aiHelpers.js';
 
 export function loadEsqueletoSprites(scene) {
   scene.load.spritesheet('esqueleto_walk', 'assets/map/characters/esqueleto/walk.png', {
@@ -18,10 +19,6 @@ export function loadEsqueletoSprites(scene) {
     frameHeight: 64,
   });
   scene.load.audio('attack_skeleton', 'assets/sounds/ingame/attack-skeleton.mp3');
-}
-
-function safePlay(sprite, key) {
-  if (sprite.anims.currentAnim?.key !== key) sprite.play(key, true);
 }
 
 export function createEsqueleto(scene, x = 200, y = 200) {
@@ -109,12 +106,11 @@ function createEsqueletoAnimations(scene) {
   });
 }
 
-export function updateEsqueleto(scene, e, player) {
-  if (!e.active || !player || e.state === 'hurt') return;
+export function updateEsqueleto(scene, e, players) {
+  if (!e.active || e.state === 'hurt') return;
 
-  const dx = player.x - e.x;
-  const dy = player.y - e.y;
-  const distSq = dx * dx + dy * dy;
+  const { target, dx, dy, distSq } = getClosestTarget(e, players);
+  if (!target) return;
 
   const dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : dy < 0 ? 'up' : 'down';
   e.lastDir = dir;
@@ -134,7 +130,6 @@ export function updateEsqueleto(scene, e, player) {
         safePlay(e, 'esqueleto_idle');
         return;
       }
-
       if (distSq <= e.attackRadiusSq) {
         if (scene.time.now - e.lastAttackTime >= e.attackCooldown) {
           e.state = 'attack';
@@ -142,8 +137,8 @@ export function updateEsqueleto(scene, e, player) {
           e.attackSound.play();
           safePlay(e, `esqueleto_attack_${dir}`);
           e.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-            if (Phaser.Math.Distance.Between(e.x, e.y, player.x, player.y) <= 40) {
-              player.takeDamage?.(10);
+            if (Phaser.Math.Distance.Between(e.x, e.y, target.x, target.y) <= 40) {
+              target.takeDamage?.(10);
             }
             e.lastAttackTime = scene.time.now;
             e.state = 'chase';
@@ -153,7 +148,7 @@ export function updateEsqueleto(scene, e, player) {
           safePlay(e, `esqueleto_walk_${dir}`);
         }
       } else {
-        scene.physics.moveToObject(e, player, e.speed);
+        scene.physics.moveToObject(e, target, e.speed);
         safePlay(e, `esqueleto_walk_${dir}`);
       }
       break;
