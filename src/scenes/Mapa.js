@@ -11,20 +11,11 @@ import { loadPowerUpSprites, createPowerUpSystem } from './Powerups.js';
 export class Mapa extends Phaser.Scene {
   constructor() {
     super('Mapa');
-    this.goblinGroup = null;
-    this.esqueletoGroup = null;
-    this.mago = null;
-    this.isStepping = false;
-    this.currentStepSound = null;
-    this.isStepping2 = false;
-    this.currentStepSound2 = null;
-    this.currentPowerUp = null;
-    this.currentPowerUp2 = null;
-    this.keyE = null;
-    this.isPaused = false;
-    this.isDead = false;
-    this.damageGroup = null;
-    this.cameraTarget = null;
+    this.isMultiplayer = false;
+  }
+
+  init(data) {
+    this.isMultiplayer = data.isMultiplayer ?? false;
   }
 
   preload() {
@@ -43,15 +34,9 @@ export class Mapa extends Phaser.Scene {
     loadEsqueletoSprites(this);
     loadMagoSprites(this);
     loadPowerUpSprites(this);
-
-    this.load.audio('step_grass', 'assets/sounds/ingame/footsteps-grass.mp3');
-    this.load.audio('step_stone', 'assets/sounds/ingame/footsteps-stone.mp3');
   }
 
   create() {
-    this.isPaused = false;
-    this.isDead = false;
-
     const map = this.make.tilemap({ key: 'mapa' });
     const tilesets = [
       map.addTilesetImage('tileset_cave', 'tileset_cave'),
@@ -71,116 +56,97 @@ export class Mapa extends Phaser.Scene {
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
+    // Players
     this.player = createPlayer(this)
       .setPosition(64, map.heightInPixels - 64)
       .setCollideWorldBounds(true);
 
-    this.player2 = createPlayer2(this)
-      .setPosition(128, map.heightInPixels - 64)
-      .setCollideWorldBounds(true);
+    if (this.isMultiplayer) {
+      this.player2 = createPlayer2(this)
+        .setPosition(128, map.heightInPixels - 64)
+        .setCollideWorldBounds(true);
+    }
 
-    this.cameraTarget = this.add.zone((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2, 1, 1);
+    // Câmera
+    if (this.isMultiplayer) {
+      this.cameraTarget = this.add.zone(
+        (this.player.x + this.player2.x) / 2,
+        (this.player.y + this.player2.y) / 2,
+        1,
+        1,
+      );
+    } else {
+      this.cameraTarget = this.player;
+    }
+
     this.cameras.main
       .startFollow(this.cameraTarget, true, 0.08, 0.08)
       .setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
+    // Controles
     this.controls = createControls(this);
-    this.controls2 = createControls2(this);
-    this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    if (this.isMultiplayer) this.controls2 = createControls2(this);
 
+    // Colisões
     this.physics.add.collider(this.player, this.groundLayer);
     this.physics.add.collider(this.player, objetosLayer);
-    this.physics.add.collider(this.player2, this.groundLayer);
-    this.physics.add.collider(this.player2, objetosLayer);
+    if (this.isMultiplayer) {
+      this.physics.add.collider(this.player2, this.groundLayer);
+      this.physics.add.collider(this.player2, objetosLayer);
+    }
 
+    // Inimigos
     this.goblinGroup = this.physics.add.group();
     this.esqueletoGroup = this.physics.add.group();
     for (let i = 0; i < 5; i++) this.spawnGoblin();
     for (let i = 0; i < 5; i++) this.spawnEsqueleto();
-
-    this.wizardBolts = this.physics.add.group();
-
-    const bulletHit = (player, bolt) => {
-      const dmg = bolt.getData('dmg') ?? 20;
-      player.takeDamage?.(dmg);
-      bolt.destroy();
-    };
-
-    this.physics.add.overlap(this.wizardBolts, this.player, bulletHit);
-    if (this.player2) this.physics.add.overlap(this.wizardBolts, this.player2, bulletHit);
-
     this.spawnMago();
 
+    // PowerUps
     this.powerUps = createPowerUpSystem(this, [objetosLayer]);
+    this.currentPowerUp = null;
+    this.currentPowerUp2 = null;
+
     this.physics.add.overlap(this.player, this.powerUps, (_, pu) => {
       this.currentPowerUp = pu;
     });
+    if (this.isMultiplayer) {
+      this.physics.add.overlap(this.player2, this.powerUps, (_, pu) => {
+        this.currentPowerUp2 = pu;
+      });
+    }
 
-    this.physics.add.overlap(this.player2, this.powerUps, (_, pu) => {
-      this.currentPowerUp2 = pu;
-    });
-
-    this.player.posTxt = this.add
-      .text(this.player.x, this.player.y - 40, '', {
-        font: '14px monospace',
-        color: '#ffff00',
-        stroke: '#000',
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5)
-      .setDepth(1000);
-
+    // Ataques
     this.physics.add.overlap(this.player.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
     this.physics.add.overlap(this.player.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
     this.physics.add.overlap(this.player.attackBox, this.mago, () => this.mago.takeDamage?.(10));
-    this.physics.add.overlap(this.player2.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
-    this.physics.add.overlap(this.player2.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
-    this.physics.add.overlap(this.player2.attackBox, this.mago, () => this.mago.takeDamage?.(10));
+    if (this.isMultiplayer) {
+      this.physics.add.overlap(this.player2.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
+      this.physics.add.overlap(this.player2.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
+      this.physics.add.overlap(this.player2.attackBox, this.mago, () => this.mago.takeDamage?.(10));
+    }
 
-    this.stepGrass1 = this.sound.add('step_grass', { loop: true, volume: 1.0 });
-    this.stepStone1 = this.sound.add('step_stone', { loop: true, volume: 1.0 });
-    this.stepGrass2 = this.sound.add('step_grass', { loop: true, volume: 1.0 });
-    this.stepStone2 = this.sound.add('step_stone', { loop: true, volume: 1.0 });
+    // Pause e Vitória
+    this.input.keyboard.on('keydown-ESC', () => {
+      this.scene.launch('PauseScene', { parentSceneKey: 'Mapa' });
+      this.scene.pause();
+    });
 
+    this.events.once('mago-dead', () => {
+      this.scene.launch('VictoryScene', { parentSceneKey: 'Mapa' });
+      this.scene.pause();
+    });
+
+    // Tecla PowerUp
+    this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+
+    // HUD de Vida
     this.hpBarBg = this.add.graphics().setScrollFactor(0);
     this.hpBar = this.add.graphics().setScrollFactor(0);
-
-    this.hpBarBg2 = this.add.graphics().setScrollFactor(0);
-    this.hpBar2 = this.add.graphics().setScrollFactor(0);
-
-    this.input.keyboard.on('keydown-ESC', () => {
-      if (!this.isPaused && !this.isDead) {
-        this.scene.launch('PauseScene', { parentSceneKey: 'Mapa' });
-        this.scene.pause();
-        this.isPaused = true;
-      }
-    });
-    this.events.on(Phaser.Scenes.Events.RESUME, () => {
-      this.isPaused = false;
-    });
-
-    this.damageGroup = this.add.group();
-    this.showDamage = (x, y, amount) => {
-      const txt = this.add
-        .text(x, y, amount.toString(), {
-          fontFamily: 'Arial',
-          fontSize: '16px',
-          color: '#ffec00',
-          stroke: '#000',
-          strokeThickness: 2,
-        })
-        .setOrigin(0.5)
-        .setDepth(1000);
-      this.damageGroup.add(txt);
-      this.tweens.add({
-        targets: txt,
-        y: y - 32,
-        alpha: 0,
-        duration: 600,
-        ease: 'quad.out',
-        onComplete: () => txt.destroy(),
-      });
-    };
+    if (this.isMultiplayer) {
+      this.hpBarBg2 = this.add.graphics().setScrollFactor(0);
+      this.hpBar2 = this.add.graphics().setScrollFactor(0);
+    }
   }
 
   spawnGoblin() {
@@ -202,98 +168,51 @@ export class Mapa extends Phaser.Scene {
   spawnMago() {
     const x = this.physics.world.bounds.width - 256;
     const y = 128;
-    this.mago = createMago(this).setPosition(14590, 5402);
+    this.mago = createMago(this).setPosition(x, y);
     this.physics.add.collider(this.player, this.mago);
+    if (this.isMultiplayer) this.physics.add.collider(this.player2, this.mago);
   }
 
   update() {
-    this.cameraTarget.setPosition((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2);
-    this.clampToCamera(this.player);
-    this.clampToCamera(this.player2);
-
-    if (this.isDead) return;
-
-    if (this.player.health <= 0) {
-      this.isDead = true;
-      this.currentStepSound?.stop();
-      this.player.body.setVelocity(0);
-      this.player.play('player_hurt');
-      this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.scene.launch('DeathScene', { parentSceneKey: 'Mapa' });
-        this.scene.pause();
-      });
-      return;
+    // Câmera
+    if (this.isMultiplayer) {
+      this.cameraTarget.setPosition((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2);
     }
 
-    if (this.player2.health <= 0) {
-      this.isDead = true;
-      this.currentStepSound?.stop();
-      this.player2.body.setVelocity(0);
-      this.player2.play('player2_hurt');
-      this.player2.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.scene.launch('DeathScene', { parentSceneKey: 'Mapa' });
-        this.scene.pause();
-      });
-      return;
-    }
-
+    // Controles
     configControls(this.player, this.controls);
-    configControls2(this.player2, this.controls2);
+    if (this.isMultiplayer) configControls2(this.player2, this.controls2);
 
-    this.player.posTxt
-      .setPosition(this.player.x, this.player.y - 40)
-      .setText(`(${this.player.x | 0}, ${this.player.y | 0})`);
-
-    const moving1 = this.player.body.velocity.lengthSq() > 0;
-    if (moving1 && !this.isStepping) {
-      const tile = this.groundLayer.getTileAtWorldXY(this.player.x, this.player.y + this.player.height / 2);
-      this.currentStepSound = tile?.properties?.surface === 'stone' ? this.stepStone1 : this.stepGrass1;
-      this.currentStepSound.play({ seek: 0.05 });
-      this.isStepping = true;
-    } else if (!moving1 && this.isStepping) {
-      this.currentStepSound.stop();
-      this.isStepping = false;
-    }
-
-    const moving2 = this.player2.body.velocity.lengthSq() > 0;
-    if (moving2 && !this.isStepping2) {
-      const tile2 = this.groundLayer.getTileAtWorldXY(this.player2.x, this.player2.y + this.player2.height / 2);
-      this.currentStepSound2 = tile2?.properties?.surface === 'stone' ? this.stepStone2 : this.stepGrass2;
-      this.currentStepSound2.play({ seek: 0.05 });
-      this.isStepping2 = true;
-    } else if (!moving2 && this.isStepping2) {
-      this.currentStepSound2.stop();
-      this.isStepping2 = false;
-    }
-
+    // Coletar PowerUps
     if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
       if (this.currentPowerUp) {
-        const p = this.player;
-        if (this.currentPowerUp.type === 'potion') p.heal?.();
-        else p.activateShield?.();
+        if (this.currentPowerUp.type === 'potion') {
+          this.player.heal?.();
+        } else {
+          this.player.activateShield?.();
+        }
         this.currentPowerUp.destroy();
         this.currentPowerUp = null;
-      } else if (this.currentPowerUp2) {
-        const p = this.player2;
-        if (this.currentPowerUp2.type === 'potion') p.heal?.();
-        else p.activateShield?.();
+      }
+
+      if (this.isMultiplayer && this.currentPowerUp2) {
+        if (this.currentPowerUp2.type === 'potion') {
+          this.player2.heal?.();
+        } else {
+          this.player2.activateShield?.();
+        }
         this.currentPowerUp2.destroy();
         this.currentPowerUp2 = null;
       }
     }
 
-    const players = [this.player, this.player2];
-
+    // Atualizar inimigos
+    const players = this.isMultiplayer ? [this.player, this.player2] : [this.player];
     this.goblinGroup.getChildren().forEach((g) => updateGoblin(this, g, players));
     this.esqueletoGroup.getChildren().forEach((e) => updateEsqueleto(this, e, players));
     updateMago(this, this.mago, players);
 
-    this.events.once('mago-dead', () => {
-      this.scene.launch('VictoryScene', { parentSceneKey: 'Mapa' });
-      this.scene.pause();
-    });
-
-    // barra de hp p1
+    // HUD de vida Player 1
     const pct1 = Phaser.Math.Clamp(this.player.health / this.player.maxHealth, 0, 1);
     this.hpBarBg.clear().fillStyle(0x000000, 0.5).fillRect(20, 20, 200, 16);
     this.hpBar
@@ -301,39 +220,14 @@ export class Mapa extends Phaser.Scene {
       .fillStyle(0xff0000, 1)
       .fillRect(20, 20, 200 * pct1, 16);
 
-    // barra de hp p2
-    const pct2 = Phaser.Math.Clamp(this.player2.health / this.player2.maxHealth, 0, 1);
-
-    this.hpBarBg2.clear().fillStyle(0x000000, 0.5).fillRect(20, 42, 200, 16);
-
-    this.hpBar2
-      .clear()
-      .fillStyle(0xff66ff, 1)
-      .fillRect(20, 42, 200 * pct2, 16);
-  }
-
-  clampToCamera(player, padding = 16) {
-    const cam = this.cameras.main;
-    const left = cam.worldView.x + padding;
-    const right = cam.worldView.right - padding;
-    const top = cam.worldView.y + padding;
-    const bottom = cam.worldView.bottom - padding;
-
-    if (player.x < left) {
-      player.x = left;
-      player.body.setVelocityX(0);
-    }
-    if (player.x > right) {
-      player.x = right;
-      player.body.setVelocityX(0);
-    }
-    if (player.y < top) {
-      player.y = top;
-      player.body.setVelocityY(0);
-    }
-    if (player.y > bottom) {
-      player.y = bottom;
-      player.body.setVelocityY(0);
+    // HUD de vida Player 2
+    if (this.isMultiplayer) {
+      const pct2 = Phaser.Math.Clamp(this.player2.health / this.player2.maxHealth, 0, 1);
+      this.hpBarBg2.clear().fillStyle(0x000000, 0.5).fillRect(20, 42, 200, 16);
+      this.hpBar2
+        .clear()
+        .fillStyle(0xff66ff, 1)
+        .fillRect(20, 42, 200 * pct2, 16);
     }
   }
 }

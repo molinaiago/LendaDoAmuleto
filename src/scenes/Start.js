@@ -1,10 +1,16 @@
-// src/scenes/Start.js
+function setButtonHitbox(image, padding = 20) {
+  const width = image.displayWidth + padding;
+  const height = image.displayHeight + padding;
+  image.input.hitArea.setSize(width, height);
+}
+
 export class Start extends Phaser.Scene {
   constructor() {
     super('Start');
     this.menuMusic = null;
     this.optionsContainer = null;
     this.soundOn = true;
+    this.isMultiplayer = false;
   }
 
   preload() {
@@ -12,6 +18,7 @@ export class Start extends Phaser.Scene {
     this.load.image('logo3', 'assets/menu/logo3.png');
     this.load.image('start', 'assets/menu/start.png');
     this.load.image('options', 'assets/menu/options.png');
+    this.load.image('multiplayer', 'assets/menu/multiplayer.png');
     this.load.image('diamond', 'assets/menu/diamond.png');
 
     this.load.audio('menu_theme', 'assets/sounds/menu/sound-menu.mp3');
@@ -28,11 +35,14 @@ export class Start extends Phaser.Scene {
     }
 
     this.background = this.add.image(0, 0, 'menu_bg').setOrigin(0).setDisplaySize(width, height);
-
     this.add.image(width / 2, 80, 'logo3').setScale(0.8);
-    this.add.image(210, 400, 'diamond').setScale(0.5);
+    this.add.image(210, 350, 'diamond').setScale(0.5);
 
-    const btnStart = this.add.image(200, 500, 'start').setScale(0.5).setInteractive();
+    // start
+    const btnStart = this.add.image(200, 450, 'start').setScale(0.5).setInteractive();
+
+    setButtonHitbox(btnStart);
+
     btnStart
       .on('pointerover', () => {
         btnStart.setTint(0xdddddd);
@@ -43,11 +53,36 @@ export class Start extends Phaser.Scene {
         document.body.style.cursor = 'default';
       })
       .on('pointerdown', () => {
+        this.isMultiplayer = false;
         this.menuMusic.stop();
-        this.scene.start('Mapa');
+        this.scene.start('Mapa', { isMultiplayer: false });
       });
 
-    const btnOptions = this.add.image(200, 600, 'options').setScale(0.5).setInteractive();
+    // mp
+    const btnMultiplayer = this.add.image(200, 550, 'multiplayer').setScale(0.5).setInteractive();
+
+    setButtonHitbox(btnMultiplayer);
+
+    btnMultiplayer
+      .on('pointerover', () => {
+        btnMultiplayer.setTint(0xdddddd);
+        document.body.style.cursor = 'pointer';
+      })
+      .on('pointerout', () => {
+        btnMultiplayer.clearTint();
+        document.body.style.cursor = 'default';
+      })
+      .on('pointerdown', () => {
+        this.isMultiplayer = true;
+        this.menuMusic.stop();
+        this.scene.start('Mapa', { isMultiplayer: true });
+      });
+
+    // opcoes
+    const btnOptions = this.add.image(200, 650, 'options').setScale(0.5).setInteractive();
+
+    setButtonHitbox(btnOptions);
+
     btnOptions
       .on('pointerover', () => {
         btnOptions.setTint(0xdddddd);
@@ -74,16 +109,11 @@ export class Start extends Phaser.Scene {
     bg.setStrokeStyle(2, 0xffffff);
     container.add(bg);
 
-    // título
     const title = this.add
-      .text(width / 2, height / 2 - 120, 'OPÇÕES', {
-        fontSize: '28px',
-        color: '#ffffff',
-      })
+      .text(width / 2, height / 2 - 120, 'OPÇÕES', { fontSize: '28px', color: '#ffffff' })
       .setOrigin(0.5);
     container.add(title);
 
-    // toogle do som
     const soundText = this.add
       .text(width / 2 - 80, height / 2 - 40, 'Som de menu:', {
         fontSize: '20px',
@@ -108,7 +138,6 @@ export class Start extends Phaser.Scene {
     });
     container.add(soundToggle);
 
-    // fechar
     const btnClose = this.add
       .text(width / 2, height / 2 + 100, 'Fechar', {
         fontSize: '22px',
