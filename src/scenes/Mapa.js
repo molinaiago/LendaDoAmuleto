@@ -95,8 +95,20 @@ export class Mapa extends Phaser.Scene {
 
     this.goblinGroup = this.physics.add.group();
     this.esqueletoGroup = this.physics.add.group();
-    for (let i = 0; i < 100; i++) this.spawnGoblin();
-    for (let i = 0; i < 100; i++) this.spawnEsqueleto();
+    for (let i = 0; i < 5; i++) this.spawnGoblin();
+    for (let i = 0; i < 5; i++) this.spawnEsqueleto();
+
+    this.wizardBolts = this.physics.add.group();
+
+    const bulletHit = (player, bolt) => {
+      const dmg = bolt.getData('dmg') ?? 20;
+      player.takeDamage?.(dmg);
+      bolt.destroy();
+    };
+
+    this.physics.add.overlap(this.wizardBolts, this.player, bulletHit);
+    if (this.player2) this.physics.add.overlap(this.wizardBolts, this.player2, bulletHit);
+
     this.spawnMago();
 
     this.powerUps = createPowerUpSystem(this, [objetosLayer]);
@@ -107,6 +119,16 @@ export class Mapa extends Phaser.Scene {
     this.physics.add.overlap(this.player2, this.powerUps, (_, pu) => {
       this.currentPowerUp2 = pu;
     });
+
+    this.player.posTxt = this.add
+      .text(this.player.x, this.player.y - 40, '', {
+        font: '14px monospace',
+        color: '#ffff00',
+        stroke: '#000',
+        strokeThickness: 2,
+      })
+      .setOrigin(0.5)
+      .setDepth(1000);
 
     this.physics.add.overlap(this.player.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
     this.physics.add.overlap(this.player.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
@@ -180,7 +202,7 @@ export class Mapa extends Phaser.Scene {
   spawnMago() {
     const x = this.physics.world.bounds.width - 256;
     const y = 128;
-    this.mago = createMago(this).setPosition(x, y);
+    this.mago = createMago(this).setPosition(14590, 5402);
     this.physics.add.collider(this.player, this.mago);
   }
 
@@ -217,6 +239,10 @@ export class Mapa extends Phaser.Scene {
 
     configControls(this.player, this.controls);
     configControls2(this.player2, this.controls2);
+
+    this.player.posTxt
+      .setPosition(this.player.x, this.player.y - 40)
+      .setText(`(${this.player.x | 0}, ${this.player.y | 0})`);
 
     const moving1 = this.player.body.velocity.lengthSq() > 0;
     if (moving1 && !this.isStepping) {
@@ -260,7 +286,12 @@ export class Mapa extends Phaser.Scene {
 
     this.goblinGroup.getChildren().forEach((g) => updateGoblin(this, g, players));
     this.esqueletoGroup.getChildren().forEach((e) => updateEsqueleto(this, e, players));
-    updateMago(this, this.mago, this.player);
+    updateMago(this, this.mago, players);
+
+    this.events.once('mago-dead', () => {
+      this.scene.launch('VictoryScene', { parentSceneKey: 'Mapa' });
+      this.scene.pause();
+    });
 
     // barra de hp p1
     const pct1 = Phaser.Math.Clamp(this.player.health / this.player.maxHealth, 0, 1);
