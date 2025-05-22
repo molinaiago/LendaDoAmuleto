@@ -77,12 +77,6 @@ function createAnimations(scene) {
     frameRate: 10,
     repeat: 0,
   });
-  scene.anims.create({
-    key: 'player_hurt',
-    frames: scene.anims.generateFrameNumbers('player_hurt', { start: 0, end: 5 }),
-    frameRate: 10,
-    repeat: 0,
-  });
 }
 
 export function createPlayer(scene) {

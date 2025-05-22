@@ -1,13 +1,11 @@
-import Phaser from 'phaser';
-
 export function loadSprites2(scene) {
-  scene.load.spritesheet('player2_idle', 'assets/map/characters/main_female/idle.png', {
+  scene.load.spritesheet('player2_idle', 'assets/map/characters/main_female/thrust.png', {
     frameWidth: 64,
     frameHeight: 64,
   });
-  scene.load.spritesheet('player2_walk', 'assets/map/characters/main_female/walk_128.png', {
-    frameWidth: 128,
-    frameHeight: 128,
+  scene.load.spritesheet('player2_walk', 'assets/map/characters/main_female/walk.png', {
+    frameWidth: 64,
+    frameHeight: 64,
   });
   scene.load.spritesheet('player2_attack', 'assets/map/characters/main_female/slash_128.png', {
     frameWidth: 128,
@@ -18,14 +16,14 @@ export function loadSprites2(scene) {
     frameHeight: 64,
   });
 
-  scene.load.audio('attack_player2', 'assets/sounds/ingame/attack-player2.mp3');
+  scene.load.audio('attack_main', 'assets/sounds/ingame/attack-main.mp3');
 }
 
 function createAnimations2(scene) {
   scene.anims.create({
     key: 'player2_idle',
-    frames: scene.anims.generateFrameNumbers('player2_idle', { start: 0, end: 1 }),
-    frameRate: 2,
+    frames: scene.anims.generateFrameNumbers('player2_idle', { start: 0, end: 23 }),
+    frameRate: 8,
     repeat: -1,
     yoyo: true,
   });
@@ -36,7 +34,7 @@ function createAnimations2(scene) {
     repeat: -1,
   });
   scene.anims.create({
-    key: 'player2_walk_side',
+    key: 'player2_walk',
     frames: scene.anims.generateFrameNumbers('player2_walk', { start: 27, end: 35 }),
     frameRate: 8,
     repeat: -1,
@@ -108,9 +106,9 @@ export function createPlayer2(scene) {
   scene.physics.add.existing(p2.attackBox);
   p2.attackBox.body.enable = false;
 
-  p2.attackSound = scene.sound.add('attack_player2', { volume: 0.3 });
+  p2.attackSound = scene.sound.add('attack_main', { volume: 0.3 });
   scene.anims.on(Phaser.Animations.Events.ANIMATION_START, (anim, frame, sprite) => {
-    if (sprite === p2 && anim.key.startsWith('player2_attack')) p2.attackSound.play();
+    if (sprite === p && anim.key.startsWith('player_attack')) p.attackSound.play();
   });
 
   p2.heal = function () {
@@ -152,4 +150,3 @@ export function createPlayer2(scene) {
 
   return p2;
 }
-e
