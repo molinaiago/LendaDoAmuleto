@@ -12,10 +12,12 @@ export class Mapa extends Phaser.Scene {
   constructor() {
     super('Mapa');
     this.isMultiplayer = false;
+    this.isGameOver = false;
   }
 
   init(data) {
     this.isMultiplayer = data.isMultiplayer ?? false;
+    this.isGameOver = false;
   }
 
   preload() {
@@ -72,16 +74,9 @@ export class Mapa extends Phaser.Scene {
         .setCollideWorldBounds(true);
     }
 
-    if (this.isMultiplayer) {
-      this.cameraTarget = this.add.zone(
-        (this.player.x + this.player2.x) / 2,
-        (this.player.y + this.player2.y) / 2,
-        1,
-        1,
-      );
-    } else {
-      this.cameraTarget = this.player;
-    }
+    this.cameraTarget = this.isMultiplayer
+      ? this.add.zone((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2, 1, 1)
+      : this.player;
 
     this.cameras.main
       .startFollow(this.cameraTarget, true, 0.08, 0.08)
@@ -116,6 +111,17 @@ export class Mapa extends Phaser.Scene {
     this.esqueletoGroup = this.physics.add.group();
     for (let i = 0; i < 5; i++) this.spawnGoblin();
     for (let i = 0; i < 5; i++) this.spawnEsqueleto();
+
+    this.wizardBolts = this.physics.add.group();
+
+    const bulletHit = (player, bolt) => {
+      const dmg = bolt.getData('dmg') ?? 20;
+      player.takeDamage?.(dmg);
+      bolt.destroy();
+    };
+
+    this.physics.add.overlap(this.wizardBolts, this.player, bulletHit);
+    if (this.player2) this.physics.add.overlap(this.wizardBolts, this.player2, bulletHit);
     this.spawnMago();
 
     this.powerUps = createPowerUpSystem(this, [objetosLayer]);
@@ -216,6 +222,8 @@ export class Mapa extends Phaser.Scene {
   update() {
     if (this.isMultiplayer) {
       this.cameraTarget.setPosition((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2);
+      this.clampToCamera(this.player);
+      this.clampToCamera(this.player2);
     }
 
     configControls(this.player, this.controls);
@@ -301,5 +309,41 @@ export class Mapa extends Phaser.Scene {
     this.goblinGroup.getChildren().forEach((g) => updateGoblin(this, g, players));
     this.esqueletoGroup.getChildren().forEach((e) => updateEsqueleto(this, e, players));
     updateMago(this, this.mago, players);
+
+    if (!this.isGameOver) {
+      for (const p of players) {
+        if (p.health <= 0) {
+          this.isGameOver = true;
+          this.scene.launch('DeathScene', { parentSceneKey: 'Mapa' });
+          this.scene.pause();
+          break;
+        }
+      }
+    }
+  }
+
+  clampToCamera(player, padding = 16) {
+    const cam = this.cameras.main;
+    const left = cam.worldView.x + padding;
+    const right = cam.worldView.right - padding;
+    const top = cam.worldView.y + padding;
+    const bottom = cam.worldView.bottom - padding;
+
+    if (player.x < left) {
+      player.x = left;
+      player.body.setVelocityX(0);
+    }
+    if (player.x > right) {
+      player.x = right;
+      player.body.setVelocityX(0);
+    }
+    if (player.y < top) {
+      player.y = top;
+      player.body.setVelocityY(0);
+    }
+    if (player.y > bottom) {
+      player.y = bottom;
+      player.body.setVelocityY(0);
+    }
   }
 }
