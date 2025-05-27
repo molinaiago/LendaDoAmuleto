@@ -64,14 +64,10 @@ export class Mapa extends Phaser.Scene {
 
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    this.player = createPlayer(this)
-      .setPosition(64, map.heightInPixels - 64)
-      .setCollideWorldBounds(true);
+    this.player = createPlayer(this).setPosition(64, map.heightInPixels - 64).setCollideWorldBounds(true);
 
     if (this.isMultiplayer) {
-      this.player2 = createPlayer2(this)
-        .setPosition(128, map.heightInPixels - 64)
-        .setCollideWorldBounds(true);
+      this.player2 = createPlayer2(this).setPosition(128, map.heightInPixels - 64).setCollideWorldBounds(true);
     }
 
     this.cameraTarget = this.isMultiplayer
@@ -122,6 +118,7 @@ export class Mapa extends Phaser.Scene {
 
     this.physics.add.overlap(this.wizardBolts, this.player, bulletHit);
     if (this.player2) this.physics.add.overlap(this.wizardBolts, this.player2, bulletHit);
+
     this.spawnMago();
 
     this.powerUps = createPowerUpSystem(this, [objetosLayer]);
@@ -140,6 +137,7 @@ export class Mapa extends Phaser.Scene {
     this.physics.add.overlap(this.player.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
     this.physics.add.overlap(this.player.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
     this.physics.add.overlap(this.player.attackBox, this.mago, () => this.mago.takeDamage?.(10));
+
     if (this.isMultiplayer) {
       this.physics.add.overlap(this.player2.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
       this.physics.add.overlap(this.player2.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
@@ -152,6 +150,7 @@ export class Mapa extends Phaser.Scene {
     });
 
     this.events.once('mago-dead', () => {
+      this.hideBossHud();
       this.scene.launch('VictoryScene', { parentSceneKey: 'Mapa' });
       this.scene.pause();
     });
@@ -174,27 +173,35 @@ export class Mapa extends Phaser.Scene {
     }
 
     this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-  }
 
-  showMessage(x, y, message) {
-    const msg = this.add
-      .text(x, y, message, {
-        fontSize: '16px',
-        color: '#ffff00',
+    this.bossHudBg = this.add.graphics().setScrollFactor(0).setVisible(false);
+    this.bossHud = this.add.graphics().setScrollFactor(0).setVisible(false);
+
+    this.bossName = this.add
+      .text(this.scale.width / 2, 40, 'O MAGO SOMBRIO', {
+        fontSize: '24px',
+        color: '#ff0000',
         stroke: '#000000',
-        strokeThickness: 2,
+        strokeThickness: 4,
+        fontFamily: 'Arial',
       })
       .setOrigin(0.5)
-      .setDepth(1000);
+      .setScrollFactor(0)
+      .setVisible(false);
 
-    this.tweens.add({
-      targets: msg,
-      y: y - 50,
-      alpha: 0,
-      duration: 2500,
-      ease: 'Power2',
-      onComplete: () => msg.destroy(),
-    });
+    this.bossFightStarted = false;
+  }
+
+  showBossHud() {
+    this.bossHud.setVisible(true);
+    this.bossHudBg.setVisible(true);
+    this.bossName.setVisible(true);
+  }
+
+  hideBossHud() {
+    this.bossHud.setVisible(false);
+    this.bossHudBg.setVisible(false);
+    this.bossName.setVisible(false);
   }
 
   spawnGoblin() {
@@ -226,82 +233,33 @@ export class Mapa extends Phaser.Scene {
       this.clampToCamera(this.player2);
     }
 
+    const distanceToBoss = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mago.x, this.mago.y);
+    if (distanceToBoss < 600) {
+      this.bossFightStarted = true;
+      this.showBossHud();
+    } else {
+      this.bossFightStarted = false;
+      this.hideBossHud();
+    }
+
+    if (this.bossFightStarted) {
+      const pct = Phaser.Math.Clamp(this.mago.hp / this.mago.maxHp, 0, 1);
+      this.bossHudBg.clear().fillStyle(0x000000, 0.6).fillRect(this.scale.width / 2 - 200, 70, 400, 18);
+      this.bossHud.clear().fillStyle(0xff0000, 1).fillRect(this.scale.width / 2 - 200, 70, 400 * pct, 18);
+    }
+
     configControls(this.player, this.controls);
     if (this.isMultiplayer) configControls2(this.player2, this.controls2);
 
-    const moving1 = this.player.body.velocity.lengthSq() > 0;
-    if (moving1 && !this.isStepping1) {
-      const tile = this.groundLayer.getTileAtWorldXY(this.player.x, this.player.y + this.player.height / 2);
-      const sound = tile?.properties?.surface === 'stone' ? this.stepStone1 : this.stepGrass1;
-      sound.play();
-      this.isStepping1 = true;
-    } else if (!moving1 && this.isStepping1) {
-      this.stepGrass1.stop();
-      this.stepStone1.stop();
-      this.isStepping1 = false;
-    }
-
-    if (this.isMultiplayer) {
-      const moving2 = this.player2.body.velocity.lengthSq() > 0;
-      if (moving2 && !this.isStepping2) {
-        const tile2 = this.groundLayer.getTileAtWorldXY(this.player2.x, this.player2.y + this.player2.height / 2);
-        const sound2 = tile2?.properties?.surface === 'stone' ? this.stepStone2 : this.stepGrass2;
-        sound2.play();
-        this.isStepping2 = true;
-      } else if (!moving2 && this.isStepping2) {
-        this.stepGrass2.stop();
-        this.stepStone2.stop();
-        this.isStepping2 = false;
-      }
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-      if (this.currentPowerUp) {
-        this.soundPickup.play();
-        if (this.currentPowerUp.type === 'potion') {
-          this.player.heal?.();
-          this.soundHeal.play();
-          this.showMessage(this.player.x, this.player.y - 50, 'Poção de vida coletada!');
-        } else {
-          this.player.activateShield?.();
-          this.soundShield.play();
-          this.showMessage(this.player.x, this.player.y - 50, 'Escudo de proteção ativado!');
-        }
-        this.currentPowerUp.destroy();
-        this.currentPowerUp = null;
-      }
-
-      if (this.isMultiplayer && this.currentPowerUp2) {
-        this.soundPickup.play();
-        if (this.currentPowerUp2.type === 'potion') {
-          this.player2.heal?.();
-          this.soundHeal.play();
-          this.showMessage(this.player2.x, this.player2.y - 50, 'Poção de vida coletada!');
-        } else {
-          this.player2.activateShield?.();
-          this.soundShield.play();
-          this.showMessage(this.player2.x, this.player2.y - 50, 'Escudo de proteção ativado!');
-        }
-        this.currentPowerUp2.destroy();
-        this.currentPowerUp2 = null;
-      }
-    }
-
     const pct1 = Phaser.Math.Clamp(this.player.health / this.player.maxHealth, 0, 1);
     this.hpBarBg.clear().fillStyle(0x000000, 0.5).fillRect(20, 20, 200, 16);
-    this.hpBar
-      .clear()
-      .fillStyle(0xff0000, 1)
-      .fillRect(20, 20, 200 * pct1, 16);
+    this.hpBar.clear().fillStyle(0xff0000, 1).fillRect(20, 20, 200 * pct1, 16);
     this.nameText1.setText('Josué');
 
     if (this.isMultiplayer) {
       const pct2 = Phaser.Math.Clamp(this.player2.health / this.player2.maxHealth, 0, 1);
       this.hpBarBg2.clear().fillStyle(0x000000, 0.5).fillRect(20, 42, 200, 16);
-      this.hpBar2
-        .clear()
-        .fillStyle(0xff66ff, 1)
-        .fillRect(20, 42, 200 * pct2, 16);
+      this.hpBar2.clear().fillStyle(0xff66ff, 1).fillRect(20, 42, 200 * pct2, 16);
       this.nameText2.setText('Rita');
     }
 
@@ -309,17 +267,6 @@ export class Mapa extends Phaser.Scene {
     this.goblinGroup.getChildren().forEach((g) => updateGoblin(this, g, players));
     this.esqueletoGroup.getChildren().forEach((e) => updateEsqueleto(this, e, players));
     updateMago(this, this.mago, players);
-
-    if (!this.isGameOver) {
-      for (const p of players) {
-        if (p.health <= 0) {
-          this.isGameOver = true;
-          this.scene.launch('DeathScene', { parentSceneKey: 'Mapa' });
-          this.scene.pause();
-          break;
-        }
-      }
-    }
   }
 
   clampToCamera(player, padding = 16) {
@@ -329,21 +276,9 @@ export class Mapa extends Phaser.Scene {
     const top = cam.worldView.y + padding;
     const bottom = cam.worldView.bottom - padding;
 
-    if (player.x < left) {
-      player.x = left;
-      player.body.setVelocityX(0);
-    }
-    if (player.x > right) {
-      player.x = right;
-      player.body.setVelocityX(0);
-    }
-    if (player.y < top) {
-      player.y = top;
-      player.body.setVelocityY(0);
-    }
-    if (player.y > bottom) {
-      player.y = bottom;
-      player.body.setVelocityY(0);
-    }
+    if (player.x < left) player.x = left;
+    if (player.x > right) player.x = right;
+    if (player.y < top) player.y = top;
+    if (player.y > bottom) player.y = bottom;
   }
 }

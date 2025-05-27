@@ -1,9 +1,6 @@
 export function loadMagoSprites(scene) {
   scene.load.spritesheet('mago_walk', 'assets/map/characters/mago/walk.png', { frameWidth: 64, frameHeight: 64 });
-  scene.load.spritesheet('mago_attack', 'assets/map/characters/mago/spellcast.png', {
-    frameWidth: 64,
-    frameHeight: 64,
-  });
+  scene.load.spritesheet('mago_attack', 'assets/map/characters/mago/spellcast.png', { frameWidth: 64, frameHeight: 64 });
   scene.load.spritesheet('mago_hurt', 'assets/map/characters/mago/hurt.png', { frameWidth: 64, frameHeight: 64 });
 
   scene.load.image('mago_bolt', 'assets/map/characters/mago/mago_bolt.png');
@@ -20,7 +17,7 @@ export function createMago(scene) {
     .sprite(0, 0, 'mago_walk', 18)
     .setSize(32, 48)
     .setOffset(16, 16)
-    .setImmovable(true)
+    .setImmovable(false)
     .setCollideWorldBounds(true);
 
   ['up', 'left', 'down', 'right'].forEach((dir, i) => {
@@ -65,6 +62,7 @@ export function createMago(scene) {
     }
 
     this.state = 'hurt';
+    this.setVelocity(0);
     this.setTintFill(0xff0000);
     this.play('mago_hurt', true);
     scene.time.delayedCall(150, () => this.clearTint());
@@ -76,12 +74,14 @@ export function createMago(scene) {
 
 export function updateMago(scene, m, players) {
   if (!m.active || m.hp <= 0) return;
-  if (m.state === 'hurt' || m.state === 'attack') return;
+  if (m.state === 'hurt' || m.state === 'attack') {
+    m.setVelocity(0);
+    return;
+  }
 
-  /* escolhe o player mais perto */
   if (!Array.isArray(players)) players = [players];
-  let target = players[0],
-    minDist2 = Number.MAX_VALUE;
+  let target = players[0];
+  let minDist2 = Number.MAX_VALUE;
   players.forEach((p) => {
     const d2 = Phaser.Math.Distance.Squared(p.x, p.y, m.x, m.y);
     if (d2 < minDist2) {
@@ -90,12 +90,12 @@ export function updateMago(scene, m, players) {
     }
   });
 
-  const dx = target.x - m.x,
-    dy = target.y - m.y;
+  const dx = target.x - m.x;
+  const dy = target.y - m.y;
   const distSq = dx * dx + dy * dy;
 
-  let dirKey = 'down',
-    dirFrame = 18;
+  let dirKey = 'down';
+  let dirFrame = 18;
   if (Math.abs(dx) > Math.abs(dy)) {
     if (dx < 0) {
       dirKey = 'left';
@@ -110,36 +110,49 @@ export function updateMago(scene, m, players) {
   }
   m.setFrame(dirFrame);
 
-  if (distSq > m.detectRadiusSq) return;
-  if (scene.time.now - m.lastAttackTime < m.attackCooldown) return;
+  if (distSq < m.detectRadiusSq) {
+    const dist = Math.sqrt(distSq);
+    const speed = 80;
+    const vx = (dx / dist) * speed;
+    const vy = (dy / dist) * speed;
+    m.setVelocity(vx, vy);
+  } else {
+    m.setVelocity(0);
+    return;
+  }
 
-  m.state = 'attack';
-  m.attackSound.play();
-  m.play(`mago_attack_${dirKey}`, true);
+  if (distSq <= 500 * 500) {
+    if (scene.time.now - m.lastAttackTime >= m.attackCooldown) {
+      m.state = 'attack';
+      m.setVelocity(0);
+      m.attackSound.play();
+      m.play(`mago_attack_${dirKey}`, true);
 
-  m.once(`animationcomplete-mago_attack_${dirKey}`, () => {
-    const pwr = Phaser.Utils.Array.GetRandom(m.powers);
+      m.once(`animationcomplete-mago_attack_${dirKey}`, () => {
+        const pwr = Phaser.Utils.Array.GetRandom(m.powers);
 
-    if (pwr.key === 'mago_nova') {
-      const nova = m.boltGroup.create(m.x, m.y, 'mago_nova').setCircle(24).setDepth(500);
-      scene.tweens.add({ targets: nova, scale: 1.6, alpha: 0, duration: 400, onComplete: () => nova.destroy() });
-      players.forEach((p) => {
-        if (Phaser.Math.Distance.Between(m.x, m.y, p.x, p.y) <= pwr.range) p.takeDamage?.(pwr.damage);
+        if (pwr.key === 'mago_nova') {
+          const nova = m.boltGroup.create(m.x, m.y, 'mago_nova').setCircle(24).setDepth(500);
+          scene.tweens.add({ targets: nova, scale: 1.6, alpha: 0, duration: 400, onComplete: () => nova.destroy() });
+          players.forEach((p) => {
+            if (Phaser.Math.Distance.Between(m.x, m.y, p.x, p.y) <= pwr.range) p.takeDamage?.(pwr.damage);
+          });
+        } else {
+          const proj = m.boltGroup
+            .create(m.x, m.y, pwr.key)
+            .setCircle(8)
+            .setOffset(8, 8)
+            .setDepth(500)
+            .setData('dmg', pwr.damage);
+
+          proj.setRotation(Phaser.Math.Angle.Between(m.x, m.y, target.x, target.y));
+          scene.physics.moveTo(proj, target.x, target.y, pwr.speed);
+          scene.time.delayedCall(4000, () => proj.destroy());
+        }
+
+        m.lastAttackTime = scene.time.now;
+        m.state = 'idle';
       });
-    } else {
-      const proj = m.boltGroup
-        .create(m.x, m.y, pwr.key)
-        .setCircle(8)
-        .setOffset(8, 8)
-        .setDepth(500)
-        .setData('dmg', pwr.damage);
-
-      proj.setRotation(Phaser.Math.Angle.Between(m.x, m.y, target.x, target.y));
-      scene.physics.moveTo(proj, target.x, target.y, pwr.speed);
-      scene.time.delayedCall(4000, () => proj.destroy());
     }
-
-    m.lastAttackTime = scene.time.now;
-    m.state = 'idle';
-  });
+  }
 }
