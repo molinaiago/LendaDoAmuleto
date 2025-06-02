@@ -7,7 +7,8 @@ import { loadGoblinSprites, createGoblin, updateGoblin } from './Goblin.js';
 import { loadEsqueletoSprites, createEsqueleto, updateEsqueleto } from './Esqueleto.js';
 import { loadMagoSprites, createMago, updateMago } from './Mago.js';
 import { loadPowerUpSprites, createPowerUpSystem } from './Powerups.js';
-import { loadNpcFixoSprites, createNpcFixo } from './NpcFixo.js';
+import { loadNpcFixoSprites, createNpcFixo } from './Npc1.js';
+import { loadNpc2, createNpc2 } from './Npc2.js';
 
 export class Mapa extends Phaser.Scene {
   constructor() {
@@ -37,7 +38,7 @@ export class Mapa extends Phaser.Scene {
     loadEsqueletoSprites(this);
     loadMagoSprites(this);
     loadPowerUpSprites(this);
-
+    loadNpc2(this);
     loadNpcFixoSprites(this);
 
     this.load.audio('pickup', 'assets/sounds/ingame/pickup.mp3');
@@ -83,6 +84,23 @@ export class Mapa extends Phaser.Scene {
       this.physics.add.collider(this.player2, this.npcFixo);
     }
 
+    this.npc2 = createNpc2(this, this.player.x + 700, this.player.y - 100);
+    this.physics.add.collider(this.player, this.npc2);
+    if (this.isMultiplayer) {
+      this.physics.add.collider(this.player2, this.npc2);
+    }
+
+    this.npc2DialogLines = [
+      'JULIO: Por favor, socorro! Algo terrível aconteceu!',
+      'HERÓI: Calma, o que houve?',
+      'JULIO: Roubaram o amuleto sagrado da vila... sem ele, tudo irá ruir!',
+      'HERÓI: Quem fez isso? Para onde foram?',
+      'JULIO: Ninguém viu... mas há pegadas levando para a floresta sombria.',
+      'HERÓI: Vou trazê-lo de volta. Prometo.',
+    ];
+    this.dialogIndexNpc2 = 0;
+    this.isDialogueNpc2 = false;
+
     this.dialogBox = this.add
       .rectangle(this.scale.width / 2, this.scale.height - 60, this.scale.width - 40, 100, 0x000000, 0.8)
       .setScrollFactor(0)
@@ -97,15 +115,14 @@ export class Mapa extends Phaser.Scene {
       .setScrollFactor(0)
       .setVisible(false);
 
-    this.npcDialogLines = [
-      'NPC: Bom dia, caminhante. Você chegou atrasado.',
+    this.npcDialogLines = [ 
+      'NEYMAR: Bom dia, caminhante. Você chegou atrasado.',
       'PLAYER: Desculpe, tinha assuntos no vilarejo.',
-      'NPC: Fique atento. A estrada adiante não é segura.',
+      'NEYMAR: Fique atento. A estrada adiante não é segura.',
       'PLAYER: Entendido. Obrigado pelo aviso!',
     ];
-    this.dialogIndex = 0;
-    this.isDialogueActive = false;
-    this.canTalk = false;
+    this.dialogIndexNpc1 = 0;
+    this.isDialogueActive = false; 
 
     this.cameraTarget = this.isMultiplayer
       ? this.add.zone((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2, 1, 1)
@@ -169,8 +186,8 @@ export class Mapa extends Phaser.Scene {
     this.spawnMago();
 
     this.powerUps = createPowerUpSystem(this, [objetosLayer]);
-    this.currentPowerUp = null;
-    this.currentPowerUp2 = null;
+    this.currentPowerUp = null;  
+    this.currentPowerUp2 = null; 
 
     this.physics.add.overlap(this.player, this.powerUps, (_, pu) => {
       this.currentPowerUp = pu;
@@ -208,8 +225,9 @@ export class Mapa extends Phaser.Scene {
         .text(20, 26, 'Rita', { fontSize: '14px', color: '#ff66ff', backgroundColor: '#000' })
         .setScrollFactor(0);
     }
-
-    this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    
+    this.keyInteractP1 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.COMMA); 
+    this.keyInteractP2 = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);     
 
     this.bossHudBg = this.add.graphics().setScrollFactor(0).setVisible(false);
     this.bossHud = this.add.graphics().setScrollFactor(0).setVisible(false);
@@ -229,19 +247,19 @@ export class Mapa extends Phaser.Scene {
     this.bossFightStarted = false;
   }
 
-  startDialogue() {
-    this.dialogIndex = 0;
+  startDialogue() { 
+    this.dialogIndexNpc1 = 0;
     this.isDialogueActive = true;
     this.dialogBox.setVisible(true);
-    this.dialogText.setText(this.npcDialogLines[this.dialogIndex]).setVisible(true);
+    this.dialogText.setText(this.npcDialogLines[this.dialogIndexNpc1]).setVisible(true);
     this.player.body.setVelocity(0);
     if (this.isMultiplayer) this.player2.body.setVelocity(0);
   }
 
   advanceDialogue() {
-    this.dialogIndex++;
-    if (this.dialogIndex < this.npcDialogLines.length) {
-      this.dialogText.setText(this.npcDialogLines[this.dialogIndex]);
+    this.dialogIndexNpc1++;
+    if (this.dialogIndexNpc1 < this.npcDialogLines.length) {
+      this.dialogText.setText(this.npcDialogLines[this.dialogIndexNpc1]);
     } else {
       this.endDialogue();
     }
@@ -251,6 +269,7 @@ export class Mapa extends Phaser.Scene {
     this.isDialogueActive = false;
     this.dialogBox.setVisible(false);
     this.dialogText.setVisible(false);
+    this.dialogIndexNpc1 = 0;
   }
 
   showBossHud() {
@@ -288,47 +307,97 @@ export class Mapa extends Phaser.Scene {
   }
 
   update() {
-    const dx = this.player.x - this.npcFixo.x;
-    const dy = this.player.y - this.npcFixo.y;
-    const distSq = dx * dx + dy * dy;
-    this.canTalk = distSq <= 50 * 50;
+    const dxP1NpcFixo = this.player.x - this.npcFixo.x;
+    const dyP1NpcFixo = this.player.y - this.npcFixo.y;
+    const distSqP1NpcFixo = dxP1NpcFixo * dxP1NpcFixo + dyP1NpcFixo * dyP1NpcFixo;
+    const canP1TalkNpcFixo = distSqP1NpcFixo <= 50 * 50;
 
-    if (this.isMultiplayer) {
-      const dx2 = this.player2.x - this.npcFixo.x;
-      const dy2 = this.player2.y - this.npcFixo.y;
-      const distSq2 = dx2 * dx2 + dy2 * dy2;
-      this.canTalk = this.canTalk || distSq2 <= 50 * 50;
+    let canP2TalkNpcFixo = false;
+    if (this.isMultiplayer && this.player2) { 
+      const dxP2NpcFixo = this.player2.x - this.npcFixo.x;
+      const dyP2NpcFixo = this.player2.y - this.npcFixo.y;
+      const distSqP2NpcFixo = dxP2NpcFixo * dxP2NpcFixo + dyP2NpcFixo * dyP2NpcFixo;
+      canP2TalkNpcFixo = distSqP2NpcFixo <= 50 * 50;
     }
 
-    if (this.isDialogueActive) {
-      if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-        this.advanceDialogue();
+    const dxP1Npc2 = this.player.x - this.npc2.x;
+    const dyP1Npc2 = this.player.y - this.npc2.y;
+    const distSqP1Npc2 = dxP1Npc2 * dxP1Npc2 + dyP1Npc2 * dyP1Npc2;
+    const canP1TalkNpc2 = distSqP1Npc2 <= 50 * 50;
+
+    let canP2TalkNpc2 = false;
+    if (this.isMultiplayer && this.player2) { 
+      const dxP2Npc2 = this.player2.x - this.npc2.x;
+      const dyP2Npc2 = this.player2.y - this.npc2.y;
+      const distSqP2Npc2 = dxP2Npc2 * dxP2Npc2 + dyP2Npc2 * dyP2Npc2;
+      canP2TalkNpc2 = distSqP2Npc2 <= 50 * 50;
+    }
+
+    if (this.isDialogueNpc2) {
+      if (Phaser.Input.Keyboard.JustDown(this.keyInteractP1) || (this.isMultiplayer && this.player2 && Phaser.Input.Keyboard.JustDown(this.keyInteractP2))) {
+        this.dialogIndexNpc2++;
+        if (this.dialogIndexNpc2 < this.npc2DialogLines.length) {
+          this.dialogText.setText(this.npc2DialogLines[this.dialogIndexNpc2]);
+        } else {
+          this.dialogBox.setVisible(false);
+          this.dialogText.setVisible(false);
+          this.isDialogueNpc2 = false;
+          this.dialogIndexNpc2 = 0; 
+        }
       }
+      return; 
+    }
+
+    if (canP1TalkNpc2 && Phaser.Input.Keyboard.JustDown(this.keyInteractP1)) {
+      this.dialogIndexNpc2 = 0;
+      this.isDialogueNpc2 = true;
+      this.dialogBox.setVisible(true);
+      this.dialogText.setText(this.npc2DialogLines[this.dialogIndexNpc2]).setVisible(true);
+      this.player.body.setVelocity(0);
+      if (this.isMultiplayer && this.player2) this.player2.body.setVelocity(0);
+      return;
+    } else if (this.isMultiplayer && this.player2 && canP2TalkNpc2 && Phaser.Input.Keyboard.JustDown(this.keyInteractP2)) {
+      this.dialogIndexNpc2 = 0;
+      this.isDialogueNpc2 = true;
+      this.dialogBox.setVisible(true);
+      this.dialogText.setText(this.npc2DialogLines[this.dialogIndexNpc2]).setVisible(true);
+      this.player.body.setVelocity(0);
+      if (this.isMultiplayer && this.player2) this.player2.body.setVelocity(0); 
       return;
     }
 
-    if (this.canTalk && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+    if (this.isDialogueActive) { 
+      if (Phaser.Input.Keyboard.JustDown(this.keyInteractP1) || (this.isMultiplayer && this.player2 && Phaser.Input.Keyboard.JustDown(this.keyInteractP2))) {
+        this.advanceDialogue(); 
+      }
+      return; 
+    }
+
+    if (canP1TalkNpcFixo && Phaser.Input.Keyboard.JustDown(this.keyInteractP1)) {
+      this.startDialogue(); 
+      return;
+    } else if (this.isMultiplayer && this.player2 && canP2TalkNpcFixo && Phaser.Input.Keyboard.JustDown(this.keyInteractP2)) {
       this.startDialogue();
       return;
     }
 
-    if (this.isMultiplayer) {
+    if (this.isMultiplayer && this.player2) {
       this.cameraTarget.setPosition((this.player.x + this.player2.x) / 2, (this.player.y + this.player2.y) / 2);
       this.clampToCamera(this.player);
       this.clampToCamera(this.player2);
     }
 
     const distanceToBoss = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mago.x, this.mago.y);
-    if (distanceToBoss < 600) {
-      this.bossFightStarted = true;
-      this.showBossHud();
-    } else {
-      this.bossFightStarted = false;
-      this.hideBossHud();
+    if (distanceToBoss < 600 && !this.bossFightStarted) { 
+        this.bossFightStarted = true;
+        this.showBossHud();
+    } else if (distanceToBoss >= 600 && this.bossFightStarted) {
+        this.bossFightStarted = false;
+        this.hideBossHud();
     }
 
     configControls(this.player, this.controls);
-    if (this.isMultiplayer) configControls2(this.player2, this.controls2);
+    if (this.isMultiplayer && this.player2) configControls2(this.player2, this.controls2);
 
     const moving1 = this.player.body.velocity.lengthSq() > 0;
     if (moving1 && !this.isStepping1) {
@@ -342,7 +411,7 @@ export class Mapa extends Phaser.Scene {
       this.isStepping1 = false;
     }
 
-    if (this.isMultiplayer) {
+    if (this.isMultiplayer && this.player2) {
       const moving2 = this.player2.body.velocity.lengthSq() > 0;
       if (moving2 && !this.isStepping2) {
         const tile2 = this.groundLayer.getTileAtWorldXY(this.player2.x, this.player2.y + this.player2.height / 2);
@@ -356,27 +425,32 @@ export class Mapa extends Phaser.Scene {
       }
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
-      if (this.currentPowerUp) {
+
+    if (Phaser.Input.Keyboard.JustDown(this.keyInteractP1)) {
+      if (this.currentPowerUp) { 
         this.soundPickup.play();
         if (this.currentPowerUp.type === 'potion') {
           this.player.heal?.();
           this.soundHeal.play();
           this.showMessage(this.player.x, this.player.y - 50, 'Poção de vida coletada!');
-        } else {
+        } else { 
           this.player.activateShield?.();
           this.soundShield.play();
           this.showMessage(this.player.x, this.player.y - 50, 'Escudo de proteção ativado!');
         }
         this.currentPowerUp.destroy();
         this.currentPowerUp = null;
-      } else if (this.isMultiplayer && this.currentPowerUp2) {
+      }
+    }
+
+    if (this.isMultiplayer && this.player2 && Phaser.Input.Keyboard.JustDown(this.keyInteractP2)) {
+      if (this.currentPowerUp2) { 
         this.soundPickup.play();
         if (this.currentPowerUp2.type === 'potion') {
           this.player2.heal?.();
           this.soundHeal.play();
           this.showMessage(this.player2.x, this.player2.y - 50, 'Poção de vida coletada!');
-        } else {
+        } else { 
           this.player2.activateShield?.();
           this.soundShield.play();
           this.showMessage(this.player2.x, this.player2.y - 50, 'Escudo de proteção ativado!');
@@ -392,22 +466,25 @@ export class Mapa extends Phaser.Scene {
       .clear()
       .fillStyle(0xff0000, 1)
       .fillRect(20, 20, 200 * pct1, 16);
-    this.nameText1.setText('Josué');
+    this.nameText1.setText('Josué'); 
 
-    if (this.isMultiplayer) {
+    if (this.isMultiplayer && this.player2) {
       const pct2 = Phaser.Math.Clamp(this.player2.health / this.player2.maxHealth, 0, 1);
       this.hpBarBg2.clear().fillStyle(0x000000, 0.5).fillRect(20, 42, 200, 16);
       this.hpBar2
         .clear()
         .fillStyle(0xff66ff, 1)
         .fillRect(20, 42, 200 * pct2, 16);
-      this.nameText2.setText('Rita');
+      this.nameText2.setText('Rita'); 
     }
 
-    const players = this.isMultiplayer ? [this.player, this.player2] : [this.player];
+    const players = this.isMultiplayer && this.player2 ? [this.player, this.player2] : [this.player];
     this.goblinGroup.getChildren().forEach((g) => updateGoblin(this, g, players));
     this.esqueletoGroup.getChildren().forEach((e) => updateEsqueleto(this, e, players));
-    updateMago(this, this.mago, players);
+    if (this.mago && this.mago.active) { 
+        updateMago(this, this.mago, players);
+    }
+
 
     if (!this.isGameOver) {
       for (const p of players) {
@@ -422,6 +499,7 @@ export class Mapa extends Phaser.Scene {
   }
 
   clampToCamera(player, padding = 16) {
+    if (!player || !player.body) return;
     const cam = this.cameras.main;
     const left = cam.worldView.x + padding;
     const right = cam.worldView.right - padding;

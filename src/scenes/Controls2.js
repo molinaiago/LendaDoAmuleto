@@ -9,8 +9,8 @@ export function createControls2(scene) {
     down: Phaser.Input.Keyboard.KeyCodes.S,
     right: Phaser.Input.Keyboard.KeyCodes.D,
   });
-  keys.dash = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O);
-  keys.attack = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+  keys.dash = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
+  keys.attack = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
   return keys;
 }
 
