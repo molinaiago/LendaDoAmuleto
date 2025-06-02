@@ -109,8 +109,18 @@ export class Mapa extends Phaser.Scene {
 
     this.goblinGroup = this.physics.add.group();
     this.esqueletoGroup = this.physics.add.group();
-    for (let i = 0; i < 5; i++) this.spawnGoblin();
-    for (let i = 0; i < 5; i++) this.spawnEsqueleto();
+    for (let i = 0; i < 50; i++) this.spawnGoblin();
+    for (let i = 0; i < 50; i++) this.spawnEsqueleto();
+
+    this.physics.add.overlap(this.player.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
+    this.physics.add.overlap(this.player.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
+    this.physics.add.overlap(this.player.attackBox, this.mago, () => this.mago.takeDamage?.(10));
+
+    if (this.isMultiplayer) {
+      this.physics.add.overlap(this.player2.attackBox, this.goblinGroup, (_, g) => g.takeDamage?.(10));
+      this.physics.add.overlap(this.player2.attackBox, this.esqueletoGroup, (_, e) => e.takeDamage?.(10));
+      this.physics.add.overlap(this.player2.attackBox, this.mago, () => this.mago.takeDamage?.(10));
+    }
 
     this.wizardBolts = this.physics.add.group();
 
@@ -340,7 +350,6 @@ export class Mapa extends Phaser.Scene {
         }
       }
     }
-    // -----------------------------
   }
 
   clampToCamera(player, padding = 16) {
