@@ -11,7 +11,7 @@ export function loadGoblinSprites(scene) {
   scene.load.audio('attack_goblin', 'assets/sounds/ingame/attack-goblin.mp3');
 }
 
-export function createGoblin(scene, x = 200, y = 200) {
+export function createGoblin(scene, x, y, difficultyConfig) {
   const g = scene.physics.add.sprite(x, y, 'goblin_idle').setSize(32, 40).setOffset(16, 24);
 
   g.attackSound = scene.sound.add('attack_goblin', { volume: 0.5 });
@@ -25,8 +25,10 @@ export function createGoblin(scene, x = 200, y = 200) {
   g.state = 'idle';
   g.lastDir = 'down';
 
-  g.maxHp = 20;
-  g.hp = 20;
+  const baseHealth = 20;
+  const baseDamage = 10;
+  g.maxHp = g.hp = Math.round(baseHealth * difficultyConfig.enemyHealthMultiplier);
+  g.damage = Math.round(baseDamage * difficultyConfig.enemyDamageMultiplier);
 
   if (!scene.anims.exists('goblin_run_down')) createAnimations(scene);
 
@@ -131,7 +133,7 @@ export function updateGoblin(scene, g, players) {
           safePlay(g, `goblin_attack_${dir}`);
           g.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
             if (Phaser.Math.Distance.Between(g.x, g.y, target.x, target.y) <= 40) {
-              target.takeDamage?.(10);
+              target.takeDamage?.(g.damage);
             }
             g.lastAttackTime = scene.time.now;
             g.state = 'chase';

@@ -1,6 +1,9 @@
 export function loadMagoSprites(scene) {
   scene.load.spritesheet('mago_walk', 'assets/map/characters/mago/walk.png', { frameWidth: 64, frameHeight: 64 });
-  scene.load.spritesheet('mago_attack', 'assets/map/characters/mago/spellcast.png', { frameWidth: 64, frameHeight: 64 });
+  scene.load.spritesheet('mago_attack', 'assets/map/characters/mago/spellcast.png', {
+    frameWidth: 64,
+    frameHeight: 64,
+  });
   scene.load.spritesheet('mago_hurt', 'assets/map/characters/mago/hurt.png', { frameWidth: 64, frameHeight: 64 });
 
   scene.load.image('mago_bolt', 'assets/map/characters/mago/mago_bolt.png');
@@ -10,7 +13,7 @@ export function loadMagoSprites(scene) {
   scene.load.audio('attack_wizard', 'assets/sounds/ingame/attack-wizard.mp3');
 }
 
-export function createMago(scene) {
+export function createMago(scene, x, y, difficultyConfig) {
   if (!scene.wizardBolts) scene.wizardBolts = scene.physics.add.group();
 
   const m = scene.physics.add
@@ -44,9 +47,9 @@ export function createMago(scene) {
   m.maxHp = m.hp = 100;
 
   m.powers = [
-    { key: 'mago_bolt', speed: 260, damage: 20, range: 1000 },
-    { key: 'mago_fire', speed: 160, damage: 35, range: 700 },
-    { key: 'mago_nova', speed: 0, damage: 25, range: 150 },
+    { key: 'mago_bolt', speed: 260, damage: difficultyConfig.magoBoltDamage, range: 1000 },
+    { key: 'mago_fire', speed: 160, damage: Math.round(difficultyConfig.magoBoltDamage * 1.5), range: 700 },
+    { key: 'mago_nova', speed: 0, damage: Math.round(difficultyConfig.magoBoltDamage * 1.2), range: 150 },
   ];
   m.boltGroup = scene.wizardBolts;
 
@@ -72,7 +75,7 @@ export function createMago(scene) {
   return m;
 }
 
-export function updateMago(scene, m, players) {
+export function updateMago(scene, m, players, difficultyConfig) {
   if (!m.active || m.hp <= 0) return;
   if (m.state === 'hurt' || m.state === 'attack') {
     m.setVelocity(0);

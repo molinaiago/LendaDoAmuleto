@@ -21,7 +21,7 @@ export function loadEsqueletoSprites(scene) {
   scene.load.audio('attack_skeleton', 'assets/sounds/ingame/attack-skeleton.mp3');
 }
 
-export function createEsqueleto(scene, x = 200, y = 200) {
+export function createEsqueleto(scene, x, y, difficultyConfig) {
   const e = scene.physics.add.sprite(x, y, 'esqueleto_idle').setSize(32, 40).setOffset(16, 24);
 
   e.attackSound = scene.sound.add('attack_skeleton', { volume: 0.5 });
@@ -35,8 +35,10 @@ export function createEsqueleto(scene, x = 200, y = 200) {
   e.state = 'idle';
   e.lastDir = 'down';
 
-  e.maxHp = 30;
-  e.hp = 30;
+  const baseHealth = 30;
+  const baseDamage = 10;
+  e.maxHp = e.hp = Math.round(baseHealth * difficultyConfig.enemyHealthMultiplier);
+  e.damage = Math.round(baseDamage * difficultyConfig.enemyDamageMultiplier);
 
   if (!scene.anims.exists('esqueleto_walk_down')) createEsqueletoAnimations(scene);
 
@@ -138,7 +140,7 @@ export function updateEsqueleto(scene, e, players) {
           safePlay(e, `esqueleto_attack_${dir}`);
           e.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
             if (Phaser.Math.Distance.Between(e.x, e.y, target.x, target.y) <= 40) {
-              target.takeDamage?.(10);
+              target.takeDamage?.(e.damage);
             }
             e.lastAttackTime = scene.time.now;
             e.state = 'chase';

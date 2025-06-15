@@ -1,4 +1,3 @@
-// Npc2.js
 import { safePlay } from '../utils/aiHelpers.js';
 
 export function loadNpc2(scene) {
@@ -10,6 +9,7 @@ export function loadNpc2(scene) {
 
 export function createNpc2(scene, x = 0, y = 0) {
   const n = scene.physics.add.sprite(x, y, 'npc2_idle').setSize(32, 40).setOffset(16, 24);
+
   n.state = 'idle';
   n.interacted = false;
 

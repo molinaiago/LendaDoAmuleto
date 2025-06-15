@@ -1,6 +1,9 @@
 function setButtonHitbox(image, padding = 20) {
   const width = image.displayWidth + padding;
   const height = image.displayHeight + padding;
+  if (!image.input) {
+    image.setInteractive();
+  }
   image.input.hitArea.setSize(width, height);
 }
 
@@ -11,6 +14,7 @@ export class Start extends Phaser.Scene {
     this.optionsContainer = null;
     this.soundOn = true;
     this.isMultiplayer = false;
+    this.difficulty = 'Normal';
   }
 
   preload() {
@@ -38,9 +42,7 @@ export class Start extends Phaser.Scene {
     this.add.image(width / 2, 80, 'logo3').setScale(0.8);
     this.add.image(210, 350, 'diamond').setScale(0.5);
 
-    // start
     const btnStart = this.add.image(200, 450, 'start').setScale(0.5).setInteractive();
-
     setButtonHitbox(btnStart);
 
     btnStart
@@ -55,12 +57,10 @@ export class Start extends Phaser.Scene {
       .on('pointerdown', () => {
         this.isMultiplayer = false;
         this.menuMusic.stop();
-        this.scene.start('Mapa', { isMultiplayer: false });
+        this.scene.start('Mapa', { isMultiplayer: false, difficulty: this.difficulty });
       });
 
-    // mp
     const btnMultiplayer = this.add.image(200, 550, 'multiplayer').setScale(0.5).setInteractive();
-
     setButtonHitbox(btnMultiplayer);
 
     btnMultiplayer
@@ -75,12 +75,10 @@ export class Start extends Phaser.Scene {
       .on('pointerdown', () => {
         this.isMultiplayer = true;
         this.menuMusic.stop();
-        this.scene.start('Mapa', { isMultiplayer: true });
+        this.scene.start('Mapa', { isMultiplayer: true, difficulty: this.difficulty });
       });
 
-    // opcoes
     const btnOptions = this.add.image(200, 650, 'options').setScale(0.5).setInteractive();
-
     setButtonHitbox(btnOptions);
 
     btnOptions
@@ -100,53 +98,117 @@ export class Start extends Phaser.Scene {
   }
 
   showOptions() {
-    if (this.optionsContainer) return;
+    if (this.optionsContainer && this.optionsContainer.active) return;
 
     const { width, height } = this.scale;
-    const container = this.add.container(0, 0);
+    if (this.optionsContainer) {
+      this.optionsContainer.destroy(true);
+    }
 
-    const bg = this.add.rectangle(width / 2, height / 2, 400, 300, 0x000000, 0.75);
+    this.optionsContainer = this.add.container(0, 0);
+
+    const bg = this.add.rectangle(width / 2, height / 2, 400, 400, 0x000000, 0.85);
     bg.setStrokeStyle(2, 0xffffff);
-    container.add(bg);
+    this.optionsContainer.add(bg);
 
     const title = this.add
-      .text(width / 2, height / 2 - 120, 'OPÇÕES', { fontSize: '28px', color: '#ffffff' })
+      .text(width / 2, height / 2 - 160, 'OPÇÕES', { fontSize: '28px', color: '#ffffff', fontStyle: 'bold' })
       .setOrigin(0.5);
-    container.add(title);
+    this.optionsContainer.add(title);
 
     const soundText = this.add
-      .text(width / 2 - 80, height / 2 - 40, 'Som de menu:', {
+      .text(width / 2 - 150, height / 2 - 90, 'Som do Menu:', {
         fontSize: '20px',
         color: '#ffffff',
       })
       .setOrigin(0, 0.5);
-    container.add(soundText);
+    this.optionsContainer.add(soundText);
 
     const soundToggle = this.add
-      .text(width / 2 + 80, height / 2 - 40, this.soundOn ? 'ON' : 'OFF', {
+      .text(width / 2 + 100, height / 2 - 90, this.soundOn ? 'ON' : 'OFF', {
         fontSize: '20px',
         color: this.soundOn ? '#00ff00' : '#ff0000',
+        backgroundColor: '#222222',
+        padding: { x: 10, y: 5 },
       })
       .setOrigin(0.5)
       .setInteractive();
+
     soundToggle.on('pointerdown', () => {
       this.soundOn = !this.soundOn;
       soundToggle.setText(this.soundOn ? 'ON' : 'OFF');
       soundToggle.setColor(this.soundOn ? '#00ff00' : '#ff0000');
-      if (this.soundOn) this.menuMusic.play();
-      else this.menuMusic.pause();
+      if (this.soundOn) {
+        if (this.menuMusic && !this.menuMusic.isPlaying && this.menuMusic.isPaused) {
+          this.menuMusic.resume();
+        } else if (this.menuMusic && !this.menuMusic.isPlaying) {
+          this.menuMusic.play();
+        }
+      } else {
+        if (this.menuMusic && this.menuMusic.isPlaying) {
+          this.menuMusic.pause();
+        }
+      }
     });
-    container.add(soundToggle);
+    this.optionsContainer.add(soundToggle);
+
+    const difficultyTitle = this.add
+      .text(width / 2, height / 2 - 30, 'Dificuldade:', {
+        fontSize: '22px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+    this.optionsContainer.add(difficultyTitle);
+
+    const difficulties = ['Fácil', 'Normal', 'Difícil'];
+    const difficultyButtons = [];
+    let yPos = height / 2 + 20;
+
+    difficulties.forEach((level, index) => {
+      const btn = this.add
+        .text(width / 2, yPos + index * 50, level, {
+          fontSize: '20px',
+          color: '#ffffff',
+          backgroundColor: this.difficulty === level ? '#666666' : '#333333',
+          padding: { x: 20, y: 10 },
+          align: 'center',
+          fixedWidth: 150,
+        })
+        .setOrigin(0.5)
+        .setInteractive();
+
+      btn.on('pointerover', () => {
+        if (this.difficulty !== level) btn.setStyle({ backgroundColor: '#555555' });
+        document.body.style.cursor = 'pointer';
+      });
+      btn.on('pointerout', () => {
+        if (this.difficulty !== level) btn.setStyle({ backgroundColor: '#333333' });
+        document.body.style.cursor = 'default';
+      });
+      btn.on('pointerdown', () => {
+        this.difficulty = level;
+        difficultyButtons.forEach((b) => {
+          b.setStyle({ backgroundColor: this.difficulty === b.text ? '#666666' : '#333333' });
+        });
+        console.log('Dificuldade selecionada:', this.difficulty);
+      });
+      this.optionsContainer.add(btn);
+      difficultyButtons.push(btn);
+    });
 
     const btnClose = this.add
-      .text(width / 2, height / 2 + 100, 'Fechar', {
+      .text(width / 2, height / 2 + 160, 'Fechar', {
         fontSize: '22px',
         color: '#ffffff',
         backgroundColor: '#333333',
+        padding: { x: 15, y: 5 },
       })
-      .setPadding(10)
       .setOrigin(0.5)
       .setInteractive();
+
+    setButtonHitbox(btnClose, 10);
+
     btnClose
       .on('pointerover', () => {
         btnClose.setStyle({ backgroundColor: '#555555' });
@@ -157,13 +219,13 @@ export class Start extends Phaser.Scene {
         document.body.style.cursor = 'default';
       })
       .on('pointerdown', () => this.closeOptions());
-    container.add(btnClose);
-
-    this.optionsContainer = container;
+    this.optionsContainer.add(btnClose);
   }
 
   closeOptions() {
-    this.optionsContainer.destroy(true);
-    this.optionsContainer = null;
+    if (this.optionsContainer) {
+      this.optionsContainer.destroy(true);
+      this.optionsContainer = null;
+    }
   }
 }
