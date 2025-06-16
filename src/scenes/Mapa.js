@@ -23,7 +23,7 @@ export class Mapa extends Phaser.Scene {
         enemyHealthMultiplier: 0.7,
         enemyDamageMultiplier: 0.7,
         powerUpSpawnRateMultiplier: 1.3,
-        magoHealth: 350,
+        magoHealth: 150,
         magoBoltDamage: 15,
         playerAttackDamageMultiplier: 1.1,
       },
@@ -33,7 +33,7 @@ export class Mapa extends Phaser.Scene {
         enemyHealthMultiplier: 1,
         enemyDamageMultiplier: 1,
         powerUpSpawnRateMultiplier: 1,
-        magoHealth: 500,
+        magoHealth: 200,
         magoBoltDamage: 20,
         playerAttackDamageMultiplier: 1,
       },
@@ -43,7 +43,7 @@ export class Mapa extends Phaser.Scene {
         enemyHealthMultiplier: 1.5,
         enemyDamageMultiplier: 1.5,
         powerUpSpawnRateMultiplier: 0.7,
-        magoHealth: 700,
+        magoHealth: 300,
         magoBoltDamage: 25,
         playerAttackDamageMultiplier: 0.9,
       },
@@ -70,6 +70,7 @@ export class Mapa extends Phaser.Scene {
     this.load.image('tileset_houses_noBG', 'assets/map/constructions/tileset_houses_noBG.png');
     this.load.image('tileset_three_noBG', 'assets/map/constructions/tileset_three_noBG.png');
     this.load.image('tileset_cave_obstacles', 'assets/map/constructions/tileset_cave_obstacles.png');
+    this.load.image('amuleto', 'assets/map/itens/amuleto.png');
 
     loadSprites(this);
     if (this.isMultiplayer) loadSprites2(this);
@@ -119,13 +120,13 @@ export class Mapa extends Phaser.Scene {
       this.player2.baseAttackDamage = 10 * this.currentDifficultyConfig.playerAttackDamageMultiplier;
     }
 
-    this.npcFixo = createNpcFixo(this, this.player.x + 500, this.player.y - 150);
+    this.npcFixo = createNpcFixo(this, this.player.x + 460, this.player.y - 150);
     this.physics.add.collider(this.player, this.npcFixo);
     if (this.isMultiplayer && this.player2) {
       this.physics.add.collider(this.player2, this.npcFixo);
     }
 
-    this.npc2 = createNpc2(this, this.player.x + 700, this.player.y - 100);
+    this.npc2 = createNpc2(this, this.player.x + 580, this.player.y - 150);
     this.physics.add.collider(this.player, this.npc2);
     if (this.isMultiplayer && this.player2) {
       this.physics.add.collider(this.player2, this.npc2);
@@ -157,10 +158,10 @@ export class Mapa extends Phaser.Scene {
       .setVisible(false);
 
     this.npcDialogLines = [
-      'NEYMAR: Bom dia, caminhante. Você chegou atrasado.',
-      'PLAYER: Desculpe, tinha assuntos no vilarejo.',
-      'NEYMAR: Fique atento. A estrada adiante não é segura.',
-      'PLAYER: Entendido. Obrigado pelo aviso!',
+      'ROGERIO: Bom dia, caminhante. Você chegou atrasado.',
+      'HERÓI: Desculpe, tinha assuntos no vilarejo.',
+      'ROGERIO: Fique atento. A estrada adiante não é segura.',
+      'HERÓI: Entendido. Obrigado pelo aviso!',
     ];
     this.dialogIndexNpc1 = 0;
     this.isDialogueActive = false;
@@ -261,10 +262,27 @@ export class Mapa extends Phaser.Scene {
       this.scene.pause();
     });
 
-    this.events.once('mago-dead', () => {
+    this.events.once('mago-dead', (magoX, magoY) => {
       this.hideBossHud();
-      this.scene.launch('VictoryScene', { parentSceneKey: 'Mapa' });
-      this.scene.pause();
+
+      const amuletoVisual = this.add.sprite(magoX, magoY, 'amuleto').setScale(0.5).setDepth(10);
+
+      this.tweens.add({
+        targets: amuletoVisual,
+        alpha: 0.3,
+        scale: amuletoVisual.scale * 1.1,
+        duration: 700,
+        ease: 'Sine.easeInOut',
+        yoyo: true,
+        repeat: -1,
+      });
+
+      this.time.delayedCall(2000, () => {
+        console.log('Amuleto dropado, iniciando cena de vitória...');
+
+        this.scene.pause();
+        this.scene.launch('VictoryScene', { parentSceneKey: 'Mapa' });
+      });
     });
 
     this.hpBarBg = this.add.graphics().setScrollFactor(0);
@@ -359,8 +377,9 @@ export class Mapa extends Phaser.Scene {
   }
 
   spawnMago() {
-    this.mago = createMago(this, 14590, 5402, this.currentDifficultyConfig);
+    this.mago = createMago(this, 14592, 5408, this.currentDifficultyConfig);
     this.physics.add.collider(this.player, this.mago);
+
     if (this.isMultiplayer && this.player2) {
       this.physics.add.collider(this.player2, this.mago);
     }
@@ -475,20 +494,20 @@ export class Mapa extends Phaser.Scene {
         this.hideBossHud();
       }
 
-      if (
-        this.bossFightStarted &&
-        typeof this.mago.health === 'number' &&
-        typeof this.mago.maxHealth === 'number' &&
-        this.mago.maxHealth > 0
-      ) {
-        const bossHpPct = Phaser.Math.Clamp(this.mago.health / this.mago.maxHealth, 0, 1);
-        const hudWidth = 400;
-        const hudX = this.scale.width / 2 - hudWidth / 2;
-        this.bossHudBg.clear().fillStyle(0x000000, 0.7).fillRect(hudX, 70, hudWidth, 20);
+      if (this.bossFightStarted) {
+        const bossHpPct = Phaser.Math.Clamp(this.mago.hp / this.mago.maxHp, 0, 1);
+
+        const barWidth = 400;
+        const barHeight = 20;
+        const barX = this.scale.width / 2 - barWidth / 2;
+        const barY = 70;
+
+        this.bossHudBg.clear().fillStyle(0x000000, 0.7).fillRect(barX, barY, barWidth, barHeight);
+
         this.bossHud
           .clear()
           .fillStyle(0xff0000, 1)
-          .fillRect(hudX, 70, hudWidth * bossHpPct, 20);
+          .fillRect(barX, barY, barWidth * bossHpPct, barHeight);
       }
     }
 

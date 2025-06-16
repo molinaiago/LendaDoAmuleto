@@ -17,11 +17,27 @@ export function createMago(scene, x, y, difficultyConfig) {
   if (!scene.wizardBolts) scene.wizardBolts = scene.physics.add.group();
 
   const m = scene.physics.add
-    .sprite(0, 0, 'mago_walk', 18)
+    .sprite(x, y, 'mago_walk', 18)
     .setSize(32, 48)
     .setOffset(16, 16)
     .setImmovable(false)
     .setCollideWorldBounds(true);
+
+  const directions = [
+    { key: 'up', startFrame: 0, endFrame: 7 },
+    { key: 'left', startFrame: 8, endFrame: 15 },
+    { key: 'down', startFrame: 16, endFrame: 23 },
+    { key: 'right', startFrame: 24, endFrame: 31 },
+  ];
+
+  directions.forEach((dirConfig) => {
+    scene.anims.create({
+      key: `mago_walk_${dirConfig.key}`,
+      frames: scene.anims.generateFrameNumbers('mago_walk', { start: dirConfig.startFrame, end: dirConfig.endFrame }),
+      frameRate: 10,
+      repeat: -1,
+    });
+  });
 
   ['up', 'left', 'down', 'right'].forEach((dir, i) => {
     scene.anims.create({
@@ -44,26 +60,21 @@ export function createMago(scene, x, y, difficultyConfig) {
   m.attackCooldown = 1200;
   m.lastAttackTime = 0;
   m.state = 'idle';
-  m.maxHp = m.hp = 100;
-
+  m.maxHp = m.hp = difficultyConfig.magoHealth;
   m.powers = [
     { key: 'mago_bolt', speed: 260, damage: difficultyConfig.magoBoltDamage, range: 1000 },
     { key: 'mago_fire', speed: 160, damage: Math.round(difficultyConfig.magoBoltDamage * 1.5), range: 700 },
     { key: 'mago_nova', speed: 0, damage: Math.round(difficultyConfig.magoBoltDamage * 1.2), range: 150 },
   ];
   m.boltGroup = scene.wizardBolts;
-
   m.takeDamage = function (d = 1) {
     if (this.hp <= 0 || this.state === 'hurt') return;
-
     this.hp -= d;
-
     if (this.hp <= 0) {
-      scene.events.emit('mago-dead');
+      scene.events.emit('mago-dead', this.x, this.y);
       this.destroy();
       return;
     }
-
     this.state = 'hurt';
     this.setVelocity(0);
     this.setTintFill(0xff0000);
@@ -92,26 +103,16 @@ export function updateMago(scene, m, players, difficultyConfig) {
       target = p;
     }
   });
-
   const dx = target.x - m.x;
   const dy = target.y - m.y;
   const distSq = dx * dx + dy * dy;
 
   let dirKey = 'down';
-  let dirFrame = 18;
   if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx < 0) {
-      dirKey = 'left';
-      dirFrame = 9;
-    } else {
-      dirKey = 'right';
-      dirFrame = 27;
-    }
-  } else if (dy < 0) {
-    dirKey = 'up';
-    dirFrame = 0;
+    dirKey = dx < 0 ? 'left' : 'right';
+  } else {
+    dirKey = dy < 0 ? 'up' : 'down';
   }
-  m.setFrame(dirFrame);
 
   if (distSq < m.detectRadiusSq) {
     const dist = Math.sqrt(distSq);
@@ -119,8 +120,11 @@ export function updateMago(scene, m, players, difficultyConfig) {
     const vx = (dx / dist) * speed;
     const vy = (dy / dist) * speed;
     m.setVelocity(vx, vy);
+
+    m.anims.play(`mago_walk_${dirKey}`, true);
   } else {
     m.setVelocity(0);
+    m.anims.stop();
     return;
   }
 
@@ -133,7 +137,6 @@ export function updateMago(scene, m, players, difficultyConfig) {
 
       m.once(`animationcomplete-mago_attack_${dirKey}`, () => {
         const pwr = Phaser.Utils.Array.GetRandom(m.powers);
-
         if (pwr.key === 'mago_nova') {
           const nova = m.boltGroup.create(m.x, m.y, 'mago_nova').setCircle(24).setDepth(500);
           scene.tweens.add({ targets: nova, scale: 1.6, alpha: 0, duration: 400, onComplete: () => nova.destroy() });
@@ -147,12 +150,10 @@ export function updateMago(scene, m, players, difficultyConfig) {
             .setOffset(8, 8)
             .setDepth(500)
             .setData('dmg', pwr.damage);
-
           proj.setRotation(Phaser.Math.Angle.Between(m.x, m.y, target.x, target.y));
           scene.physics.moveTo(proj, target.x, target.y, pwr.speed);
           scene.time.delayedCall(4000, () => proj.destroy());
         }
-
         m.lastAttackTime = scene.time.now;
         m.state = 'idle';
       });
