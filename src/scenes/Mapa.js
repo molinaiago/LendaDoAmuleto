@@ -71,6 +71,8 @@ export class Mapa extends Phaser.Scene {
     this.load.image('tileset_three_noBG', 'assets/map/constructions/tileset_three_noBG.png');
     this.load.image('tileset_cave_obstacles', 'assets/map/constructions/tileset_cave_obstacles.png');
     this.load.image('amuleto', 'assets/map/itens/amuleto.png');
+    this.load.audio('boss_theme', 'assets/sounds/ingame/boss-theme.mp3');
+
 
     loadSprites(this);
     if (this.isMultiplayer) loadSprites2(this);
@@ -184,6 +186,13 @@ export class Mapa extends Phaser.Scene {
 
     this.stepGrass1 = this.sound.add('step_grass', { loop: true, volume: 0.8 });
     this.stepStone1 = this.sound.add('step_stone', { loop: true, volume: 0.8 });
+    
+    this.bossTheme = this.sound.add('boss_theme', {
+      loop: true,
+      volume: 0.8,
+    });
+    this.bossThemeOffset = 0;
+
 
     if (this.isMultiplayer) {
       this.stepGrass2 = this.sound.add('step_grass', { loop: true, volume: 0.8 });
@@ -486,12 +495,23 @@ export class Mapa extends Phaser.Scene {
 
     if (this.mago && this.mago.active) {
       const distanceToBoss = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mago.x, this.mago.y);
+
       if (distanceToBoss < 600 && !this.bossFightStarted) {
         this.bossFightStarted = true;
         this.showBossHud();
+
+        if (this.bossTheme && !this.bossTheme.isPlaying) {
+          this.bossTheme.play({ seek: this.bossThemeOffset });
+        }
+
       } else if (distanceToBoss >= 600 && this.bossFightStarted) {
         this.bossFightStarted = false;
         this.hideBossHud();
+
+        if (this.bossTheme && this.bossTheme.isPlaying) {
+          this.bossThemeOffset = this.bossTheme.seek; 
+          this.bossTheme.pause();
+        }
       }
 
       if (this.bossFightStarted) {
