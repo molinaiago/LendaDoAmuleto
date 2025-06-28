@@ -76,13 +76,13 @@ npm run start
 
 * **Movimento:** Teclas de Seta (↑, ↓, ←, →) ou WASD.
 * **Ataque:** Barra de Espaço ou Clique do Mouse.
-* **Interação (Diálogos):** Tecla E.
+* **Interação (Diálogos):** Tecla ,.
 
 *(Os controles podem variar. Verifique o código-fonte para confirmação.)*
 
 ## 👨‍💻 Autores
 
-* **Iago Molina Camargo** )
+* **Iago Molina Camargo** 
 * **Samuel Barbara** 
 * **Felipe Tadiello** 
 
